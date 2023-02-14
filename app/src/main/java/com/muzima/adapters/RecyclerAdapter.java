@@ -23,7 +23,6 @@ public abstract class RecyclerAdapter<T> extends Adapter<RecyclerAdapter.ViewHol
         void onQueryTaskStarted();
         void onQueryTaskFinish();
         void onQueryTaskCancelled();
-        void onQueryTaskCancelled(Object errorDefinition);
     }
 
     public abstract static class ViewHolder extends RecyclerView.ViewHolder {

@@ -30,7 +30,6 @@ import com.muzima.adapters.ListAdapter;
 import com.muzima.api.model.PatientTag;
 import com.muzima.controller.PatientController;
 import com.muzima.tasks.MuzimaAsyncTask;
-import com.muzima.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +45,8 @@ public class PatientTagsListAdapter extends ListAdapter<PatientTag> implements A
     public PatientTagsListAdapter(Context context, int textViewResourceId,PatientController patientController) {
         super(context, textViewResourceId);
         this.patientController = patientController;
-        patientsLocalSearchAdapter = new PatientsLocalSearchAdapter(context, patientController, null, null);
+        patientsLocalSearchAdapter = new PatientsLocalSearchAdapter(context,
+                R.layout.layout_list, patientController, new ArrayList<String>(), null);
     }
 
     public void onTagsChanged() {
@@ -66,8 +66,6 @@ public class PatientTagsListAdapter extends ListAdapter<PatientTag> implements A
             holder.indicator = convertView.findViewById(R.id.tag_indicator);
             holder.name = convertView
                     .findViewById(R.id.tag_name);
-            holder.description = convertView
-                    .findViewById(R.id.tag_description);
             holder.tagColorIndicator = convertView
                     .findViewById(R.id.tag_color_indicator);
             holder.icon = convertView.findViewById(R.id.tag_icon);
@@ -75,8 +73,7 @@ public class PatientTagsListAdapter extends ListAdapter<PatientTag> implements A
         }
 
         holder = (com.muzima.adapters.patients.PatientTagsListAdapter.ViewHolder) convertView.getTag();
-        PatientTag patientTag = getItem(position);
-        int tagColor = patientController.getTagColor(patientTag.getUuid());
+        int tagColor = patientController.getTagColor(getItem(position).getUuid());
         if (position == 0) {
             tagColor = Color.parseColor("#333333");
         }
@@ -84,7 +81,7 @@ public class PatientTagsListAdapter extends ListAdapter<PatientTag> implements A
         Resources resources = getContext().getResources();
         List<PatientTag> selectedTags = patientController.getSelectedTags();
         if (selectedTags.isEmpty()) {
-            if (selectedTags.contains(patientTag)) {
+            if (position == 0) {
                 markItemSelected(holder, tagColor, resources);
             } else {
                 markItemUnselected(holder, resources);
@@ -97,17 +94,7 @@ public class PatientTagsListAdapter extends ListAdapter<PatientTag> implements A
             }
         }
         holder.tagColorIndicator.setBackgroundColor(tagColor);
-        holder.name.setText(patientTag.getName());
-
-        if(Constants.FGH.TagsUuids.ALREADY_ASSIGNED_TAG_UUID.equals(patientTag.getUuid())){
-            holder.description.setText(getContext().getString(R.string.general_already_assigned));
-        } else if(Constants.FGH.TagsUuids.AWAITING_ASSIGNMENT_TAG_UUID.equals(patientTag.getUuid())){
-            holder.description.setText(getContext().getString(R.string.general_awaiting_assignment));
-        } else if(Constants.FGH.TagsUuids.HAS_SEXUAL_PARTNER_TAG_UUID.equals(patientTag.getUuid())){
-            holder.description.setText(getContext().getString(R.string.general_has_sexual_partner));
-        } else if(patientTag.getDescription() != null){
-            holder.description.setText(patientTag.getDescription());
-        }
+        holder.name.setText(getItem(position).getName());
         return convertView;
     }
 
@@ -149,7 +136,6 @@ public class PatientTagsListAdapter extends ListAdapter<PatientTag> implements A
     private static class ViewHolder {
         View indicator;
         TextView name;
-        TextView description;
         FrameLayout tagColorIndicator;
         ImageView icon;
     }
@@ -200,7 +186,7 @@ public class PatientTagsListAdapter extends ListAdapter<PatientTag> implements A
 
         private PatientTag getAllTagsElement() {
             PatientTag tag = new PatientTag();
-            tag.setName(getContext().getString(R.string.general_all));
+            tag.setName("All");
             return tag;
         }
     }

@@ -16,7 +16,6 @@ import com.muzima.api.model.PatientIdentifier;
 import com.muzima.api.model.PatientIdentifierType;
 import com.muzima.api.service.CohortService;
 import com.muzima.api.service.FormService;
-import com.muzima.api.service.ObservationService;
 import com.muzima.api.service.PatientService;
 import com.muzima.api.service.PatientTagService;
 import com.muzima.utils.Constants;
@@ -46,7 +45,6 @@ public class PatientControllerTest {
     private CohortService cohortService;
     private FormService formService;
     private PatientTagService patientTagService;
-    private ObservationService observationService;
 
 
     @Before
@@ -55,8 +53,7 @@ public class PatientControllerTest {
         cohortService = mock(CohortService.class);
         formService = mock(FormService.class);
         patientTagService = mock(PatientTagService.class);
-        observationService = mock(ObservationService.class);
-        patientController = new PatientController(patientService, cohortService, formService, patientTagService, observationService);
+        patientController = new PatientController(patientService, cohortService, formService, patientTagService);
     }
 
     @Test

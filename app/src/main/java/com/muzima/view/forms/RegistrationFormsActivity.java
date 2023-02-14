@@ -141,19 +141,4 @@ public class RegistrationFormsActivity extends BaseAuthenticatedActivity {
         }
         return availableForms;
     }
-
-    @Override
-    public boolean onOptionsItemSelected(android.view.MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
 }

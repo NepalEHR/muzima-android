@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.muzima.MuzimaApplication;
 import com.muzima.R;
@@ -28,21 +29,15 @@ import com.muzima.api.model.FormData;
 import com.muzima.api.model.FormDataStatus;
 import com.muzima.api.model.FormTemplate;
 import com.muzima.api.model.Location;
-import com.muzima.api.model.Media;
-import com.muzima.api.model.MediaCategory;
 import com.muzima.api.model.Notification;
 import com.muzima.api.model.Observation;
 import com.muzima.api.model.Patient;
 import com.muzima.api.model.PatientReport;
 import com.muzima.api.model.PatientReportHeader;
-import com.muzima.api.model.PatientTag;
-import com.muzima.api.model.Person;
-import com.muzima.api.model.PersonAddress;
 import com.muzima.api.model.Provider;
 import com.muzima.api.model.MuzimaSetting;
 import com.muzima.api.model.Relationship;
 import com.muzima.api.model.RelationshipType;
-import com.muzima.api.model.ReportDataset;
 import com.muzima.api.model.SetupConfiguration;
 import com.muzima.api.model.SetupConfigurationTemplate;
 import com.muzima.controller.CohortController;
@@ -50,16 +45,13 @@ import com.muzima.controller.ConceptController;
 import com.muzima.controller.EncounterController;
 import com.muzima.controller.FormController;
 import com.muzima.controller.LocationController;
-import com.muzima.controller.MediaCategoryController;
-import com.muzima.controller.MediaController;
 import com.muzima.controller.PatientReportController;
 import com.muzima.controller.MuzimaSettingController;
+import com.muzima.controller.NotificationController;
 import com.muzima.controller.ObservationController;
 import com.muzima.controller.PatientController;
-import com.muzima.controller.PersonController;
 import com.muzima.controller.ProviderController;
 import com.muzima.controller.RelationshipController;
-import com.muzima.controller.ReportDatasetController;
 import com.muzima.controller.SetupConfigurationController;
 import com.muzima.util.MuzimaSettingUtils;
 import com.muzima.utils.Constants;
@@ -73,13 +65,10 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 import static com.muzima.utils.Constants.DataSyncServiceConstants.SyncStatusConstants;
@@ -89,12 +78,6 @@ import static com.muzima.utils.Constants.DataSyncServiceConstants.SyncStatusCons
 import static com.muzima.utils.Constants.LOCAL_PATIENT;
 import static java.util.Collections.singleton;
 
-import static com.muzima.utils.Constants.FGH.Concepts.HEALTHWORKER_ASSIGNMENT_CONCEPT_ID;
-import static com.muzima.utils.Constants.FGH.Concepts.INDEX_CASE_TESTING_CONSENT_CONCEPT_ID;
-import static com.muzima.utils.Constants.FGH.TagsUuids.ALREADY_ASSIGNED_TAG_UUID;
-import static com.muzima.utils.Constants.FGH.TagsUuids.AWAITING_ASSIGNMENT_TAG_UUID;
-import static com.muzima.utils.Constants.FGH.TagsUuids.HAS_SEXUAL_PARTNER_TAG_UUID;
-
 public class MuzimaSyncService {
     private static final String TAG = "MuzimaSyncService";
     private final MuzimaApplication muzimaApplication;
@@ -103,16 +86,14 @@ public class MuzimaSyncService {
     private final CohortController cohortController;
     private final PatientController patientController;
     private final ObservationController observationController;
+    private EncounterController encounterController;
+    private NotificationController notificationController;
     private LocationController locationController;
     private ProviderController providerController;
     private SetupConfigurationController setupConfigurationController;
     private MuzimaSettingController settingsController;
     private PatientReportController patientReportController;
     private RelationshipController relationshipController;
-    private PersonController personController;
-    private ReportDatasetController reportDatasetController;
-    private MediaController mediaController;
-    private MediaCategoryController mediaCategoryController;
     private Logger logger;
 
     public MuzimaSyncService(MuzimaApplication muzimaContext) {
@@ -122,16 +103,14 @@ public class MuzimaSyncService {
         cohortController = muzimaApplication.getCohortController();
         patientController = muzimaApplication.getPatientController();
         observationController = muzimaApplication.getObservationController();
+        encounterController = muzimaApplication.getEncounterController();
+        notificationController = muzimaApplication.getNotificationController();
         locationController = muzimaApplication.getLocationController();
         providerController = muzimaApplication.getProviderController();
         setupConfigurationController = muzimaApplication.getSetupConfigurationController();
         settingsController = muzimaApplication.getMuzimaSettingController();
         patientReportController = muzimaApplication.getPatientReportController();
         relationshipController = muzimaApplication.getRelationshipController();
-        personController = muzimaApplication.getPersonController();
-        reportDatasetController = muzimaApplication.getReportDatasetController();
-        mediaController = muzimaApplication.getMediaController();
-        mediaCategoryController = muzimaApplication.getMediaCategoryController();
     }
 
     public int authenticate(String[] credentials) {
@@ -142,18 +121,24 @@ public class MuzimaSyncService {
         String username = credentials[0].trim();
         String password = credentials[1];
         String server = credentials[2];
-
         Context muzimaContext = muzimaApplication.getMuzimaContext();
-        try {
+//        Toast(,server, Toast.LENGTH_SHORT).show();
+        try{
 //            if(hasInvalidSpecialCharacter(username)){
 //                return SyncStatusConstants.INVALID_CHARACTER_IN_USERNAME;
 //            }
-
+            Log.e("Server Url",server);
+            Log.e("Server Url","debugged here 0");
             muzimaContext.openSession();
+            Log.e("Server Url","debugged here 1");
             if (!muzimaContext.isAuthenticated()) {
                 if (isUpdatePasswordRequired && !NetworkUtils.isConnectedToNetwork(muzimaApplication)) {
                     return SyncStatusConstants.LOCAL_CONNECTION_ERROR;
                 } else {
+                    Log.e("Server Url",server);
+                    Log.e("Server user",username);
+                    Log.e("Server pass",password);
+
                     muzimaContext.authenticate(username, password, server, isUpdatePasswordRequired);
                 }
             }
@@ -316,7 +301,7 @@ public class MuzimaSyncService {
             result[0] = SyncStatusConstants.SAVE_ERROR;
             return result;
         } catch (ConceptController.ConceptFetchException e) {
-            Log.e(getClass().getSimpleName(),"Encounter an exception while fetching concepts",e);
+            e.printStackTrace();
         } catch (ProviderController.ProviderLoadException e) {
             Log.e(getClass().getSimpleName(), "Exception while loading Providers", e);
             result[0] = SyncStatusConstants.LOAD_ERROR;
@@ -563,8 +548,7 @@ public class MuzimaSyncService {
             long endDownloadCohortData = System.currentTimeMillis();
             Log.i(getClass().getSimpleName(), "Cohort data download successful with " + cohortDataList.size() + " cohorts");
             ArrayList<Patient> voidedPatients = new ArrayList<>();
-            List<Patient> cohortPatients = new ArrayList<>();
-            List<Patient> downloadedPatients = new ArrayList<>();
+            List<Patient> cohortPatients;
             for (CohortData cohortData : cohortDataList) {
                 cohortController.addCohortMembers(cohortData.getCohortMembers());
                 cohortPatients = cohortData.getPatients();
@@ -572,9 +556,6 @@ public class MuzimaSyncService {
                 cohortPatients.removeAll(voidedPatients);
                 patientController.replacePatients(cohortPatients);
                 patientCount += cohortData.getPatients().size();
-                if(cohortPatients.size() > 0) {
-                    downloadedPatients.addAll(cohortPatients);
-                }
             }
             patientController.deletePatient(voidedPatients);
             long cohortMemberAndPatientReplaceTime = System.currentTimeMillis();
@@ -589,27 +570,11 @@ public class MuzimaSyncService {
             result[2] = cohortDataList.size();
             result[3] = voidedPatients.size();
 
-            if(cohortUuids.length > 0) {
-                downloadRelationshipsForPatientsByCohortUUIDs(cohortUuids);
-            }
-            MuzimaSettingController muzimaSettingController = muzimaApplication.getMuzimaSettingController();
-            if(muzimaSettingController.isPatientTagGenerationEnabled()) {
-                List<String> patientUuids = new ArrayList<>();
-                if(downloadedPatients.size()>0) {
-                    for (Patient patient : downloadedPatients) {
-                        patientUuids.add(patient.getUuid());
-                    }
-                }
-                if(patientUuids.size()>0){
-                    updatePatientTags(patientUuids);
-                }
-            }
-
             //update memberships
             downloadRemovedCohortMembershipData(cohortUuids);
 
             cohortController.markAsUpToDate(cohortUuids);
-            cohortController.setSyncStatus(cohortUuids,1);
+            cohortController.setSyncStatus(cohortUuids);
         } catch (CohortController.CohortDownloadException e) {
             Log.e(getClass().getSimpleName(), "Exception thrown while downloading cohort data.", e);
             result[0] = SyncStatusConstants.DOWNLOAD_ERROR;
@@ -671,35 +636,8 @@ public class MuzimaSyncService {
                 updateProgressDialog(muzimaApplication.getString(R.string.error_encounter_observation_download));
 
             }
-            MuzimaSettingController muzimaSettingController = muzimaApplication.getMuzimaSettingController();
-            if(muzimaSettingController.isPatientTagGenerationEnabled()) {
-                if (patientlist.size() > 0) {
-                    updatePatientTags(patientlist);
-                }
-            }
         } catch (PatientController.PatientLoadException e) {
             Log.e(getClass().getSimpleName(), "Exception thrown while loading patients.", e);
-            result[0] = SyncStatusConstants.LOAD_ERROR;
-        }
-        return result;
-    }
-
-    public int[] downloadObservationsForAllPersons(boolean replaceExistingObservation) {
-        int[] result = new int[4];
-        List<Person> persons;
-        try {
-            persons = personController.getAllPersons();
-
-            List<String> personUuidList = new ArrayList();
-            for (Person person: persons) {
-                personUuidList.add(person.getUuid());
-            }
-            result = downloadObservationsForPatientsByPatientUUIDs(personUuidList, replaceExistingObservation);
-            if (result[0] != SUCCESS) {
-                updateProgressDialog(muzimaApplication.getString(R.string.error_encounter_observation_download));
-            }
-        } catch (PersonController.PersonLoadException e) {
-            Log.e(getClass().getSimpleName(), "Exception thrown while loading persons.", e);
             result[0] = SyncStatusConstants.LOAD_ERROR;
         }
         return result;
@@ -825,6 +763,111 @@ public class MuzimaSyncService {
         return voidedObservations;
     }
 
+    public int[] downloadEncountersForPatientsByCohortUUIDs(String[] cohortUuids, boolean replaceExistingEncounters) {
+        int[] result = new int[4];
+        List<Patient> patients;
+        try {
+            patients = patientController.getPatientsForCohorts(cohortUuids);
+
+            List<String> patientlist = new ArrayList();
+            for (Patient patient : patients) {
+                patientlist.add(patient.getUuid());
+            }
+            result = downloadEncountersForPatientsByPatientUUIDs(patientlist, replaceExistingEncounters);
+            if (result[0] != SUCCESS) {
+                Log.e(getClass().getSimpleName(), "Could not download encounters");
+                updateProgressDialog(muzimaApplication.getString(R.string.error_encounter_download));
+            }
+
+        } catch (PatientController.PatientLoadException e) {
+            Log.e(getClass().getSimpleName(), "Exception thrown while loading patients.", e);
+            result[0] = SyncStatusConstants.LOAD_ERROR;
+        }
+        return result;
+    }
+
+    public int[] downloadEncountersForPatientsByPatientUUIDs(List<String> patientUuids, boolean replaceExistingEncounters) {
+        int[] result = new int[4];
+        try {
+            String activeSetupConfigUuid = null;
+            try {
+                SetupConfigurationTemplate setupConfigurationTemplate = setupConfigurationController.getActiveSetupConfigurationTemplate();
+                if (setupConfigurationTemplate != null) {
+                    activeSetupConfigUuid = setupConfigurationTemplate.getUuid();
+                }
+            } catch (SetupConfigurationController.SetupConfigurationFetchException e) {
+                Log.e(getClass().getSimpleName(), "Could not obtain active setup config", e);
+            }
+            List<List<String>> slicedPatientUuids = split(patientUuids);
+            Set<String> patientsForDownloadedEncounters = new HashSet();
+            long totalTimeDownloading = 0, totalTimeReplacing = 0, totalTimeSaving = 0;
+            int i = 0;
+            for (List<String> slicedPatientUuid : slicedPatientUuids) {
+                Log.i(getClass().getSimpleName(), "Downloading encounters for " + slicedPatientUuid.size() + " patients");
+                long startDownloadEncounters = System.currentTimeMillis();
+                List<Encounter> allEncounters = new ArrayList<>(encounterController.downloadEncountersByPatientUuids(slicedPatientUuid, activeSetupConfigUuid));
+
+                long endDownloadObservations = System.currentTimeMillis();
+                Log.d(getClass().getSimpleName(), "In Downloading encounters : " + (endDownloadObservations - startDownloadEncounters) / 1000 + " sec\n");
+                totalTimeDownloading += endDownloadObservations - startDownloadEncounters;
+
+                Log.i(getClass().getSimpleName(), "Encounters download successful with " + allEncounters.size() + " encounters");
+                for (Encounter encounter : allEncounters) {
+                    patientsForDownloadedEncounters.add(encounter.getPatient().getUuid());
+                }
+                Log.i(getClass().getSimpleName(), "Downloaded Encounters for patient " + patientsForDownloadedEncounters.size() + " of " + patientUuids.size());
+                updateProgressDialog(muzimaApplication.getString(R.string.info_encounter_download_progress, patientsForDownloadedEncounters.size(), patientUuids.size()));
+
+                ArrayList<Encounter> voidedEncounters = getVoidedEncounters(allEncounters);
+                allEncounters.removeAll(voidedEncounters);
+                encounterController.deleteEncounters(voidedEncounters);
+                Log.i(getClass().getSimpleName(), "Voided encounters delete successful with " + voidedEncounters.size() + " encounters");
+
+                if (replaceExistingEncounters) {
+                    encounterController.replaceEncounters(allEncounters);
+                    long replacedEncounters = System.currentTimeMillis();
+                    Log.d(getClass().getSimpleName(), "In Replacing encounters for patients: " + (replacedEncounters - endDownloadObservations) / 1000 + " sec");
+                    totalTimeReplacing += replacedEncounters - endDownloadObservations;
+                } else {
+                    encounterController.saveEncounters(allEncounters);
+                    long savedEncounters = System.currentTimeMillis();
+                    Log.d(getClass().getSimpleName(), "In Saving encounters : " + (savedEncounters - endDownloadObservations) / 1000 + " sec\n");
+                    totalTimeSaving += savedEncounters - endDownloadObservations;
+                }
+                result[1] += allEncounters.size();
+                result[2] += voidedEncounters.size();
+            }
+            Log.d(getClass().getSimpleName(), "Total Downloading encounters : " + totalTimeDownloading / 1000 + " sec\n");
+            Log.d(getClass().getSimpleName(), "Total Replacing encounters : " + totalTimeReplacing / 1000 + " sec\n");
+            Log.d(getClass().getSimpleName(), "Total Saving encounters : " + totalTimeSaving / 1000 + " sec\n");
+            result[0] = SUCCESS;
+            result[3] = patientsForDownloadedEncounters.size();
+        } catch (EncounterController.DownloadEncounterException e) {
+            Log.e(getClass().getSimpleName(), "Exception thrown while downloading encounters.", e);
+            result[0] = SyncStatusConstants.DOWNLOAD_ERROR;
+        } catch (EncounterController.ReplaceEncounterException e) {
+            Log.e(getClass().getSimpleName(), "Exception thrown while replacing encounters.", e);
+            result[0] = SyncStatusConstants.REPLACE_ERROR;
+        } catch (EncounterController.DeleteEncounterException e) {
+            Log.e(getClass().getSimpleName(), "Exception thrown while deleting encounters.", e);
+            result[0] = SyncStatusConstants.DELETE_ERROR;
+        } catch (EncounterController.SaveEncounterException e) {
+            Log.e(getClass().getSimpleName(), "Exception thrown while saving encounters.", e);
+            result[0] = SyncStatusConstants.SAVE_ERROR;
+        }
+        return result;
+    }
+
+    private ArrayList<Encounter> getVoidedEncounters(List<Encounter> allEncounters) {
+        ArrayList<Encounter> voidedEncounters = new ArrayList<>();
+        for (Encounter encounter : allEncounters) {
+            if (encounter.isVoided()) {
+                voidedEncounters.add(encounter);
+            }
+        }
+        return voidedEncounters;
+    }
+
     public int[] uploadAllCompletedForms() {
         int[] result = new int[1];
 
@@ -873,7 +916,7 @@ public class MuzimaSyncService {
         try {
             return formController.getArchivedFormData();
         } catch (FormController.FormDataFetchException e) {
-            Log.e(getClass().getSimpleName(),"Encounter an exception while fetching form data",e);
+            e.printStackTrace();
         }
         return new ArrayList<>();
     }
@@ -921,17 +964,6 @@ public class MuzimaSyncService {
         List<String> uuids = new ArrayList<>();
         try {
             List<Patient> patients = patientController.getAllPatients();
-            uuids = getPatientUuids(patients);
-        } catch (PatientController.PatientLoadException e) {
-            Log.e(TAG, "Cannot retrieve patients from local storage", e);
-        }
-        return uuids;
-    }
-
-    public List<String> getUuidsForPatientsInCohorts(String[] savedCohortIds) {
-        List<String> uuids = new ArrayList<>();
-        try {
-            List<Patient> patients = patientController.getPatientsForCohorts(savedCohortIds);
             uuids = getPatientUuids(patients);
         } catch (PatientController.PatientLoadException e) {
             Log.e(TAG, "Cannot retrieve patients from local storage", e);
@@ -1011,6 +1043,36 @@ public class MuzimaSyncService {
             patientUuids.add(patient.getUuid());
         }
         return patientUuids;
+    }
+
+    public int[] downloadNotifications(String receiverUuid) {
+        Log.e(getClass().getSimpleName(), "Downloading messages in MuzimaSyncService");
+        int[] result = new int[2];
+
+        try {
+            List<Notification> notifications;
+            notifications = notificationController.downloadNotificationByReceiver(receiverUuid);
+            Log.i(getClass().getSimpleName(), "Notifications download successful");
+            notificationController.saveNotifications(notifications);
+            Log.i(getClass().getSimpleName(), "New notifications are saved");
+
+            List<Notification> senderNotifications;
+            senderNotifications = notificationController.downloadNotificationBySender(receiverUuid);
+            notificationController.saveNotifications(senderNotifications);
+
+            result[0] = SUCCESS;
+            result[1] = notifications.size();
+
+        } catch (NotificationController.NotificationDownloadException e) {
+            Log.e(getClass().getSimpleName(), "Exception when trying to download notifications", e);
+            result[0] = SyncStatusConstants.DOWNLOAD_ERROR;
+            return result;
+        } catch (NotificationController.NotificationSaveException e) {
+            Log.e(getClass().getSimpleName(), "Exception when trying to save notifications", e);
+            result[0] = SyncStatusConstants.SAVE_ERROR;
+            return result;
+        }
+        return result;
     }
 
     public int[] downloadPatientReportHeaders(String patientUuid) {
@@ -1226,12 +1288,6 @@ public class MuzimaSyncService {
                 new SHRStatusPreferenceService(muzimaApplication).updateSHRStatusPreference();
             } else if (MuzimaSettingUtils.isPatientIdentifierAutogenerationSetting(muzimaSetting)) {
                 new RequireMedicalRecordNumberPreferenceService(muzimaApplication).updateRequireMedicalRecordNumberPreference();
-            } else if (MuzimaSettingUtils.isOnlineOnlyModeSetting(muzimaSetting)) {
-                new OnlineOnlyModePreferenceService(muzimaApplication).updateOnlineOnlyModePreferenceValue();
-            }else if(MuzimaSettingUtils.isDuplicateFormCheckSetting(muzimaSetting)){
-                new FormDuplicateCheckPreferenceService(muzimaApplication).updateFormDuplicateCheckPreferenceSettings();
-            }else if(MuzimaSettingUtils.isRealTimeSyncSetting(muzimaSetting)){
-                new RealTimeFormDataSyncPreferenceService(muzimaApplication).updateRealTimeSyncPreferenceSettings();
             }
         }
     }
@@ -1326,278 +1382,5 @@ public class MuzimaSyncService {
         android.content.Context context = muzimaApplication.getApplicationContext();
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         return preferences.getString("defaultEncounterLocation", null);
-    }
-
-    public void updatePatientTags(List<String> patientUuidList){
-        Log.e(getClass().getSimpleName(),"Generating Patient Tags");
-        List<PatientTag> existingTags = new ArrayList<>();
-
-        try {
-            existingTags = patientController.getAllTags();
-        } catch (PatientController.PatientLoadException e) {
-            Log.e(getClass().getSimpleName(),"Encounter an exception loading patients",e);
-        }
-
-        for(String patientUuid:patientUuidList){
-            try {
-                Patient patient = patientController.getPatientByUuid(patientUuid);
-                    if(patient != null){
-                    List<PatientTag> tags = new ArrayList<>();
-                    if (patient.getTags() != null) {
-                        tags = new ArrayList<>(Arrays.asList(patient.getTags()));
-                    }
-
-                    PatientTag addressTag = null;
-                    PatientTag assignmentTag = null;
-                    PatientTag awaitingAssignmentTag = null;
-                    boolean hasSexualPartnerTag = false;
-                    boolean hasAssignmentTag = false;
-                    boolean hasAwaitingAssignmentTag = false;
-                    for (PatientTag tag : patient.getTags()) {
-                        if (StringUtils.equals(tag.getUuid(), HAS_SEXUAL_PARTNER_TAG_UUID)) {
-                            hasSexualPartnerTag = true;
-                        } else if (StringUtils.equals(tag.getUuid(), ALREADY_ASSIGNED_TAG_UUID)) {
-                            hasAssignmentTag = true;
-                            assignmentTag = tag;
-                        } else if (StringUtils.equals(tag.getUuid(), AWAITING_ASSIGNMENT_TAG_UUID)) {
-                            hasAwaitingAssignmentTag = true;
-                        }
-                    }
-
-                    //Create tag if patient has a sexual partner
-                    if (!hasSexualPartnerTag) {
-                        List<Relationship> relationships = relationshipController.getRelationshipsForPerson(patientUuid);
-                        for (Relationship relationship : relationships) {
-                            if (StringUtils.equals(relationship.getRelationshipType().getUuid(), "2f7d5778-0c80-11eb-b335-9f16b42e3b00")) {
-                                PatientTag sexualPartnerTag = new PatientTag();
-                                sexualPartnerTag.setName("P");
-                                sexualPartnerTag.setDescription(muzimaApplication.getString(R.string.general_has_sexual_partner));
-                                sexualPartnerTag.setUuid(HAS_SEXUAL_PARTNER_TAG_UUID);
-                                if (!hasSexualPartnerTag) {
-                                    hasSexualPartnerTag = true;
-                                    tags.add(sexualPartnerTag);
-                                    patientController.savePatientTags(sexualPartnerTag);
-                                }
-
-                                //update for the related patient as well
-                                try {
-                                    Patient relatedPatient = null;
-                                    if (relationship.getPersonA() != null && !StringUtils.equals(patientUuid, relationship.getPersonA().getUuid())) {
-                                        relatedPatient = patientController.getPatientByUuid(relationship.getPersonA().getUuid());
-                                    } else if (relationship.getPersonB() != null) {
-                                        relatedPatient = patientController.getPatientByUuid(relationship.getPersonB().getUuid());
-                                    }
-
-                                    if (relatedPatient != null) {
-                                        boolean relatedPatientHasSexualPartnerTag = false;
-                                        for (PatientTag tag : relatedPatient.getTags()) {
-                                            if (StringUtils.equals(tag.getUuid(), HAS_SEXUAL_PARTNER_TAG_UUID)) {
-                                                relatedPatientHasSexualPartnerTag = true;
-                                            }
-                                        }
-                                        if (!relatedPatientHasSexualPartnerTag) {
-                                            PatientTag relatedSexualPartnerTag = new PatientTag();
-                                            relatedSexualPartnerTag.setName("P");
-                                            relatedSexualPartnerTag.setDescription(muzimaApplication.getString(R.string.general_has_sexual_partner));
-                                            relatedSexualPartnerTag.setUuid(HAS_SEXUAL_PARTNER_TAG_UUID);
-                                            List<PatientTag> relatedPatientTags = new ArrayList<>(Arrays.asList(relatedPatient.getTags()));
-
-
-                                            relatedPatientTags.add(relatedSexualPartnerTag);
-                                            patientController.savePatientTags(relatedSexualPartnerTag);
-
-                                            relatedPatient.setTags(relatedPatientTags.toArray(new PatientTag[relatedPatientTags.size()]));
-                                            patientController.updatePatient(relatedPatient);
-                                        }
-                                    }
-                                } catch (PatientController.PatientLoadException e) {
-                                    Log.e(getClass().getSimpleName(), "Could not update related patient", e);
-                                }
-                            }
-                        }
-                    }
-
-                    //Create tag if the patient has address field for Bairro.
-                    List<String> tagNames = new ArrayList<>();
-
-                    for (PatientTag tag : existingTags) {
-                        tagNames.add(tag.getName());
-                    }
-
-                    PersonAddress personAddress = patient.getPreferredAddress();
-                    String address5 = null;
-
-                    if (personAddress != null) {
-                        address5 = personAddress.getAddress5();
-                    }
-
-                    if (personAddress == null) {
-                        for (PersonAddress address : patient.getAddresses()) {
-                            if (!StringUtils.isEmpty(address.getAddress5())) {
-                                address5 = address.getAddress5();
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!StringUtils.isEmpty(address5)) {
-                        String addressTagName = null;
-                        if (address5.length() > 3) {
-                            addressTagName = address5.substring(0, 3);
-                        } else {
-                            addressTagName = address5;
-                        }
-
-                        for (PatientTag existingTag : existingTags) {
-                            if (StringUtils.equals(existingTag.getName(), addressTagName)) {
-                                addressTag = existingTag;
-                            }
-                        }
-
-                        if (addressTag == null) {
-                            addressTag = new PatientTag();
-                            addressTag.setName(addressTagName);
-                            addressTag.setDescription(address5);
-                            addressTag.setUuid(UUID.randomUUID().toString());
-                            existingTags.add(addressTag);
-                            patientController.savePatientTags(addressTag);
-
-                            tags.add(addressTag);
-                        }
-                    }
-
-                    if(muzimaApplication.getMuzimaSettingController().isAllocationTagGenerationEnabled()) {
-                        if (!hasAssignmentTag) {
-                            List<Observation> assignmentObsList = observationController.getObservationsByPatientuuidAndConceptId(patientUuid, HEALTHWORKER_ASSIGNMENT_CONCEPT_ID);
-                            if (assignmentObsList.size() > 0) {
-                                for (Observation assignmentObs : assignmentObsList) {
-                                    Date now = new Date();
-                                    long assignmentDaysPassed = (now.getTime() - assignmentObs.getObservationDatetime().getTime()) / (24 * 60 * 60 * 1000);
-                                    if (assignmentDaysPassed >= 0 && assignmentDaysPassed <= 21) {
-                                        assignmentTag = new PatientTag();
-                                        assignmentTag.setName("AL");
-                                        assignmentTag.setDescription(muzimaApplication.getString(R.string.general_already_assigned));
-                                        assignmentTag.setUuid(ALREADY_ASSIGNED_TAG_UUID);
-                                        tags.add(assignmentTag);
-                                        patientController.savePatientTags(assignmentTag);
-
-                                        //remove AA tag if available
-                                        PatientTag AATag = null;
-                                        for (PatientTag patientTag : tags) {
-                                            if (patientTag.getName().equals("AA")) {
-                                                AATag = patientTag;
-                                            }
-                                        }
-
-                                        if (AATag != null) {
-                                            tags.remove(AATag);
-                                        }
-
-                                        hasAssignmentTag = true;
-                                        break;
-                                    }
-                                    if (assignmentTag != null) {
-                                        hasAssignmentTag = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (!hasAssignmentTag && !hasAwaitingAssignmentTag && assignmentTag == null) {
-                            assignmentTag = new PatientTag();
-                            assignmentTag.setName("AA");
-                            assignmentTag.setDescription(muzimaApplication.getString(R.string.general_awaiting_assignment));
-                            assignmentTag.setUuid(AWAITING_ASSIGNMENT_TAG_UUID);
-                            tags.add(assignmentTag);
-                            patientController.savePatientTags(assignmentTag);
-                        }
-                    }
-
-                    patient.setTags(tags.toArray(new PatientTag[tags.size()]));
-                    patientController.updatePatient(patient);
-                }
-            } catch (RelationshipController.RetrieveRelationshipException e) {
-                Log.e(getClass().getSimpleName(),"Error retrieving relationships", e);
-            } catch (PatientController.PatientSaveException e) {
-                Log.e(getClass().getSimpleName(), "Could not save patient with updated tags", e);
-            } catch (IOException e) {
-                Log.e(getClass().getSimpleName(), "Could not load recordqs", e);
-            } catch (PatientController.PatientLoadException e) {
-                Log.e(getClass().getSimpleName(), "Could not load patient record to update update tags", e);
-            } catch (ObservationController.LoadObservationException e) {
-                Log.e(getClass().getSimpleName(), "Could not load observations to create tags tags", e);
-            }
-        }
-    }
-
-    public int[] downloadReportDatasets(List<Integer> datasetDefinitionIds, boolean isDeltaSync){
-        int[] result = new int[2];
-        try {
-            List<ReportDataset> reportDatasets = reportDatasetController.downloadReportDatasets(datasetDefinitionIds, isDeltaSync);
-            reportDatasetController.saveReportDatasets(reportDatasets);
-            result[0] = SUCCESS;
-            result[1] = reportDatasets.size();
-
-        } catch (ReportDatasetController.ReportDatasetDownloadException | ReportDatasetController.ReportDatasetSaveException e) {
-            Log.e(TAG, "Encountered Load Exception while getting report datasets", e);
-        }
-
-        return result;
-    }
-
-
-    public int[] downloadReportDatasetsForDownloadedReports(boolean isDeltaSync){
-        int[] result = new int[2];
-        List<Integer> datasetDefinitionIds = new ArrayList<>();
-        try {
-            List<ReportDataset> reportDatasets = reportDatasetController.getReportDatasets();
-            if(reportDatasets != null && reportDatasets.size()>0){
-                for(ReportDataset reportDataset : reportDatasets){
-                    datasetDefinitionIds.add(reportDataset.getDatasetDefinitionId());
-                }
-                downloadReportDatasets(datasetDefinitionIds, isDeltaSync);
-            }
-        } catch (ReportDatasetController.ReportDatasetFetchException e) {
-            Log.e(getClass().getSimpleName(), "Error while fetching report datasets",e);
-        }
-
-        return result;
-    }
-
-    public int[] downloadMediaCategories(List<String> mediaCategoryUuids){
-        int[] result = new int[2];
-        try {
-            List<MediaCategory> mediaCategories = mediaCategoryController.downloadMediaCategory(mediaCategoryUuids, false);
-            mediaCategoryController.saveMediaCategory(mediaCategories);
-            result[0] = SUCCESS;
-            result[1] = mediaCategories.size();
-
-        } catch (MediaCategoryController.MediaCategoryDownloadException | MediaCategoryController.MediaCategorySaveException e) {
-            Log.e(TAG, "Encountered Load Exception while getting media categories", e);
-        }
-        return result;
-    }
-
-    public List<Media> downloadMedia(List<String> mediaCategoryUuids, boolean isDeltaSync){
-        List<Media> media = new ArrayList<>();
-        try {
-            media = mediaController.downloadMedia(mediaCategoryUuids, isDeltaSync);
-        } catch (MediaController.MediaDownloadException e) {
-            Log.e(TAG, "Encountered Load Exception while getting media", e);
-        }
-        return media;
-    }
-
-    public int[] saveMedia(List<Media> media){
-        int[] result = new int[2];
-        try {
-            mediaController.saveMedia(media);
-            result[0] = SUCCESS;
-            result[1] = media.size();
-        } catch (MediaController.MediaSaveException e) {
-            Log.e(TAG, "Encountered Load Exception while downloading media", e);
-        }
-        return result;
     }
 }

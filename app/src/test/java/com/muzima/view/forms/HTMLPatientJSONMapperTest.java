@@ -15,8 +15,6 @@ import com.muzima.api.model.FormData;
 import com.muzima.api.model.Patient;
 import com.muzima.api.model.User;
 import com.muzima.builder.PatientBuilder;
-import com.muzima.utils.StringUtils;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +52,7 @@ public class HTMLPatientJSONMapperTest {
         HTMLPatientJSONMapper mapper = new HTMLPatientJSONMapper();
         FormData formData = new FormData();
         formData.setTemplateUuid("formUuid");
-        String json = mapper.map(muzimaApplication,patient, formData, false, StringUtils.EMPTY);
+        String json = mapper.map(muzimaApplication,patient, formData, false);
         assertThat(json, containsString("\"patient\":{"));
         assertThat(json, containsString("\"encounter\":{"));
         assertThat(json, containsString("\"patient.given_name\":\"givenname\""));
@@ -70,7 +68,7 @@ public class HTMLPatientJSONMapperTest {
     public void shouldNotFailIFBirthDateIsNull() {
         Patient patient = patient(null);
         HTMLPatientJSONMapper htmlPatientJSONMapper = new HTMLPatientJSONMapper();
-        String json = htmlPatientJSONMapper.map(muzimaApplication,patient, new FormData(), false, StringUtils.EMPTY);
+        String json = htmlPatientJSONMapper.map(muzimaApplication,patient, new FormData(), false);
         assertThat(json,not(containsString("\"patient.birth_date\"")));
     }
 

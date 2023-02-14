@@ -57,7 +57,7 @@
 
                 <RelativeLayout
                     android:id="@+id/dashboard_main_patient_search_view"
-                    android:background="@drawable/border_button_blue"
+                    android:background="@drawable/border_button_gray"
                     android:layout_height="wrap_content"
                     android:layout_width="match_parent"
                     android:layout_marginTop="12dp"
@@ -212,7 +212,7 @@
                 android:layout_width="match_parent"
                 android:orientation="vertical">
 
-                <androidx.recyclerview.widget.RecyclerView
+                <ListView
                     style="@style/MuzimaSelectableListView"
                     android:id="@+id/list"/>
 

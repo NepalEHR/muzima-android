@@ -11,7 +11,6 @@
 package com.muzima.view.forms;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -63,26 +62,21 @@ import net.minidev.json.JSONValue;
 import org.json.JSONException;
 
 import com.muzima.controller.EncounterController;
-import com.muzima.view.MainDashboardActivity;
-import com.muzima.view.patients.UpdatePatientTagsIntent;
 
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.UUID;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import static com.muzima.utils.ConceptUtils.getConceptNameFromConceptNamesByLocale;
 import static com.muzima.utils.Constants.STANDARD_DATE_FORMAT;
 import static com.muzima.utils.Constants.STATUS_COMPLETE;
 import static com.muzima.utils.Constants.STATUS_INCOMPLETE;
@@ -103,8 +97,6 @@ class HTMLFormDataStore {
     private final CohortController cohortController;
     private final PatientController patientController;
     private final PersonController personController;
-
-    private String selectedPatientsUuids;
 
     public HTMLFormDataStore(HTMLFormWebViewActivity formWebViewActivity, FormData formData, boolean isFormReload, MuzimaApplication application) {
         this.formWebViewActivity = formWebViewActivity;
@@ -135,46 +127,14 @@ class HTMLFormDataStore {
     }
 
     @JavascriptInterface
-    public void saveHTML(String jsonPayload, final String status, boolean keepFormOpen) {
-        String selectedPatients = getSelectedPatientsUuids();
-        final MuzimaApplication applicationContext = (MuzimaApplication) formWebViewActivity.getApplicationContext();
-        if (selectedPatients.equals("[]") || selectedPatients.equals("")) {
-            processForm(jsonPayload, status, keepFormOpen, formData);
-        }else{
-            List<Patient> patients = getPatientsFromCommaSeparatedString(selectedPatients);
-            for (int i=0; i<patients.size(); i++) {
-                Patient patient = patients.get(i);
-                String separatePatientJsonPayload = setPatientInfoToThePayload(patient, jsonPayload);
-                final String patientUuid = patient.getUuid();
-                FormData formDatas = new FormData() {{
-                    setUuid(UUID.randomUUID().toString());
-                    setPatientUuid(patientUuid);
-                    setUserSystemId(applicationContext.getAuthenticatedUser().getSystemId());
-                    setUserUuid(applicationContext.getAuthenticatedUser().getUuid());
-                    setStatus(status);
-                    setTemplateUuid(formData.getTemplateUuid());
-                    setDiscriminator(formData.getDiscriminator());
-                }};
-
-                if(i == (patients.size()-1))
-                    processForm(separatePatientJsonPayload, STATUS_COMPLETE,false, formDatas);
-                else
-                    processForm(separatePatientJsonPayload, STATUS_COMPLETE,true, formDatas);
-            }
-
-            Intent intent = new Intent(applicationContext, MainDashboardActivity.class);
-            applicationContext.getApplicationContext().startActivity(intent);
-        }
-    }
-
-    public void processForm(String jsonPayload, String status, boolean keepFormOpen, FormData formData){
+    public void saveHTML(String jsonPayload, String status, boolean keepFormOpen) {
         jsonPayload = injectUserSystemIdToEncounterPayload(jsonPayload);
         jsonPayload = injectTimeZoneToEncounterPayload(jsonPayload);
         jsonPayload = injectActiveSetupConfigUuidToEncounterPayload(jsonPayload);
+        Log.e(getClass().getSimpleName(),jsonPayload);
         formData.setJsonPayload(jsonPayload);
         formData.setStatus(status);
-
-        final String patientUuid = formData.getPatientUuid();
+        String patientUuid = formData.getPatientUuid();
         boolean encounterDetailsValidityStatus = true;
         try {
             if (status.equals("complete")) {
@@ -186,39 +146,35 @@ class HTMLFormDataStore {
                     Patient newPatient = formController.createNewPatient(application, formData);
                     formData.setPatientUuid(newPatient.getUuid());
                     formWebViewActivity.startPatientSummaryView(newPatient);
-                    initiatePatientTagsUpdate(new ArrayList<String>(){{add(patientUuid);}});
                 }
-                if (formData.getDiscriminator() != null && (formData.getDiscriminator().equals(Constants.FORM_JSON_DISCRIMINATOR_RELATIONSHIP))) {
+                if(formData.getDiscriminator() != null && (formData.getDiscriminator().equals(Constants.FORM_JSON_DISCRIMINATOR_RELATIONSHIP))) {
                     formData.setDiscriminator(Constants.FORM_JSON_DISCRIMINATOR_INDIVIDUAL_OBS);
                     parseObsFromCompletedForm(jsonPayload, status, true);
-                } else if (formData.getDiscriminator() != null &&
+                } else if(formData.getDiscriminator() != null &&
                         (formData.getDiscriminator().equals(Constants.FORM_JSON_DISCRIMINATOR_INDIVIDUAL_OBS))) {
 
-                    if (personController.getPersonByUuid(patientUuid) != null) {
+                    if(personController.getPersonByUuid(patientUuid) != null) {
                         parseObsFromCompletedForm(jsonPayload, status, true);
                     } else {
                         parseObsFromCompletedForm(jsonPayload, status, false);
                     }
-                } else if (formData.getDiscriminator() != null &&
+                } else if(formData.getDiscriminator() != null &&
                         (formData.getDiscriminator().equals(Constants.FORM_JSON_DISCRIMINATOR_PERSON_UPDATE))) {
 
                     Person updatePerson = personController.getPersonByUuid(patientUuid);
-                    if (updatePerson != null) {
-                        formController.updatePerson(application, formData);
+                    if(updatePerson != null) {
+                        formController.updatePerson(application,formData);
                         parseObsFromCompletedForm(jsonPayload, status, true);
                     } else {
                         formController.updatePatient(application, formData);
                         parseObsFromCompletedForm(jsonPayload, status, false);
-                        //update tags
-                        initiatePatientTagsUpdate(new ArrayList<String>(){{add(patientUuid);}});
                     }
-                } else if (status.equals("complete") && formData.getDiscriminator() != null &&
-                        formData.getDiscriminator().equals(Constants.FORM_JSON_DISCRIMINATOR_DEMOGRAPHICS_UPDATE)) {
+                } else if(status.equals("complete") && formData.getDiscriminator() != null &&
+                        formData.getDiscriminator().equals(Constants.FORM_JSON_DISCRIMINATOR_DEMOGRAPHICS_UPDATE)){
                     Patient updatedPatient = formController.updatePatient(application, formData);
-                    if (updatedPatient != null) {
+                    if(updatedPatient != null) {
                         parseObsFromCompletedForm(jsonPayload, status, false);
                         formWebViewActivity.startPatientSummaryView(updatedPatient);
-                        initiatePatientTagsUpdate(new ArrayList<String>(){{add(patientUuid);}});
                     }
                 } else {
                     parseObsFromCompletedForm(jsonPayload, status, false);
@@ -231,69 +187,29 @@ class HTMLFormDataStore {
                 if (status.equals("complete")) {
                     JSONObject jsonObject = new JSONObject(jsonPayload);
                     JSONObject jsonObjectInner = jsonObject.getJSONObject("patient");
-                    Log.e(getClass().getSimpleName(), jsonObjectInner.toString());
-                    if (jsonObjectInner.has("patient.tagName") && jsonObjectInner.has("patient.tagUuid")) {
-                        Log.e(getClass().getSimpleName(), "Form Has both tag fields");
-
-
-                        List<PatientTag> existingTags = new ArrayList<>();
-
-                        try {
-                            existingTags = patientController.getAllTags();
-                        } catch (PatientController.PatientLoadException e) {
-                            Log.e(getClass().getSimpleName(),"Encountered an exception",e);
-                        }
-
+                    Log.e(getClass().getSimpleName(),jsonObjectInner.toString());
+                    if(jsonObjectInner.has("patient.tagName") && jsonObjectInner.has("patient.tagUuid")) {
+                        Log.e(getClass().getSimpleName(),"Form Has both tag fields");
                         List<PatientTag> tags = new ArrayList<PatientTag>();
                         Patient patient = patientController.getPatientByUuid(patientUuid);
-
-                        if (patient.getTags() != null) {
-                            tags = new ArrayList<>(Arrays.asList(patient.getTags()));
+                        for (PatientTag tag : patient.getTags()) {
+                            tags.add(tag);
                         }
 
-                        //Remove AA patient tag to be replaced by the AL/NA tags
-                        PatientTag AATag = null;
-                        for(PatientTag patientTag : tags){
-                            if(patientTag.getName().equals("AA")){
-                                AATag = patientTag;
-                            }
-                        }
-
-                        if(AATag != null){
-                            tags.remove(AATag);
-                        }
-
-
-                        String tagName = jsonObjectInner.getString("patient.tagName");
-                        PatientTag tag = null;
-                        for (PatientTag existingTag : existingTags) {
-                            if (StringUtils.equals(existingTag.getName(), tagName)) {
-                                tag = existingTag;
-                            }
-                        }
-
-                        if (tag == null) {
-                            tag = new PatientTag();
-                            tag.setName(tagName);
-                            tag.setUuid(jsonObjectInner.getString("patient.tagUuid"));
-                            if(jsonObjectInner.has("patient.tagDescription")) {
-                                tag.setDescription(jsonObjectInner.getString("patient.tagDescription"));
-                            }
-                            existingTags.add(tag);
-                            patientController.savePatientTags(tag);
-                        }
-
+                        PatientTag tag = new PatientTag();
+                        tag.setName(jsonObjectInner.getString("patient.tagName"));
+                        tag.setUuid(jsonObjectInner.getString("patient.tagUuid"));
                         tags.add(tag);
-
                         patient.setTags(tags.toArray(new PatientTag[tags.size()]));
                         patientController.updatePatient(patient);
+                        patientController.savePatientTags(tag);
                     }
                 }
                 if (!keepFormOpen) {
                     formWebViewActivity.finish();
                     if (status.equals("complete")) {
                         Toast.makeText(formWebViewActivity, formWebViewActivity.getString(R.string.info_form_data_save_success), Toast.LENGTH_SHORT).show();
-                        RealTimeFormUploader.getInstance().uploadAllCompletedForms(formWebViewActivity.getApplicationContext(), false);
+                        RealTimeFormUploader.getInstance().uploadAllCompletedForms(formWebViewActivity.getApplicationContext(),false);
                     }
                     if (status.equals("incomplete")) {
                         Toast.makeText(formWebViewActivity, formWebViewActivity.getString(R.string.info_draft_form_save_success), Toast.LENGTH_SHORT).show();
@@ -324,11 +240,6 @@ class HTMLFormDataStore {
             Toast.makeText(formWebViewActivity, formWebViewActivity.getString(R.string.error_form_data_processing), Toast.LENGTH_SHORT).show();
             Log.e(getClass().getSimpleName(), "Exception occurred while processing form data", e);
         }
-    }
-
-    private void initiatePatientTagsUpdate(List<String> patientUuidList){
-        UpdatePatientTagsIntent updatePatientTagsIntent = new UpdatePatientTagsIntent(application,patientUuidList);
-        updatePatientTagsIntent.start();
     }
 
     @JavascriptInterface
@@ -367,7 +278,7 @@ class HTMLFormDataStore {
     }
 
     @JavascriptInterface
-        public String getRelationshipForPersons(String person1Uuid, String person2Uuid){
+    public String getRelationshipForPersons(String person1Uuid, String person2Uuid){
         JSONArray relationshipsJsonArray = new JSONArray();
         RelationshipController relationshipController = ((MuzimaApplication)formWebViewActivity.getApplicationContext()).getRelationshipController();
         try {
@@ -380,7 +291,6 @@ class HTMLFormDataStore {
                     relationshipJsonObject.put("personA", relationship.getPersonA().getUuid());
                     relationshipJsonObject.put("personB", relationship.getPersonB().getUuid());
                     relationshipJsonObject.put("relationshipType", relationship.getRelationshipType().getUuid());
-                    relationshipJsonObject.put("relationshipUuid", relationship.getUuid());
 
                     relationshipsJsonArray.put(relationshipJsonObject);
                 }
@@ -464,16 +374,8 @@ class HTMLFormDataStore {
             Patient patient = patientController.downloadPatientByUUID(uuid);
             if (patient != null) {
                 patientController.savePatient(patient);
-
-                application.getMuzimaSyncService().downloadObservationsForPatientsByPatientUUIDs(new ArrayList<String>() {{
-                    add(uuid);
-                }}, true);
-
                 patientJsonObject.put("uuid", patient.getUuid());
                 patientJsonObject.put("name", patient.getDisplayName());
-                patientJsonObject.put("family_name", patient.getFamilyName());
-                patientJsonObject.put("middle_name", patient.getMiddleName());
-                patientJsonObject.put("given_name", patient.getGivenName());
                 patientJsonObject.put("identifier", patient.getIdentifier());
                 patientJsonObject.put("birth_date", DateUtils.getFormattedDate(patient.getBirthdate()));
                 patientJsonObject.put("birthdate_estimated", Boolean.toString(patient.getBirthdateEstimated()));
@@ -500,9 +402,6 @@ class HTMLFormDataStore {
             if (person != null) {
                 personJsonObject.put("uuid", person.getUuid());
                 personJsonObject.put("name", person.getDisplayName());
-                personJsonObject.put("family_name", person.getFamilyName());
-                personJsonObject.put("middle_name", person.getMiddleName());
-                personJsonObject.put("given_name", person.getGivenName());
                 personJsonObject.put("birth_date", DateUtils.getFormattedDate(person.getBirthdate()));
                 personJsonObject.put("sex", person.getGender());
                 personJsonObject.put("attributes", person.getAtributes());
@@ -610,10 +509,8 @@ class HTMLFormDataStore {
 
         if (encounterProviderPreference) {
             MuzimaApplication applicationContext = (MuzimaApplication) formWebViewActivity.getApplicationContext();
-            Provider provider = providerController.getProviderBySystemId(applicationContext.getAuthenticatedUser().getSystemId());
-            if(provider != null) {
-                providers.add(provider);
-            }
+            providers.add(providerController.getProviderBySystemId(applicationContext.getAuthenticatedUser().getSystemId()));
+            return JSONValue.toJSONString(providers);
         }
         return JSONValue.toJSONString(providers);
     }
@@ -693,7 +590,7 @@ class HTMLFormDataStore {
         try {
             observations = observationController.getObservationsByPatient(patientuuid);
         } catch (Exception | ObservationController.LoadObservationException e) {
-            Log.e(getClass().getSimpleName(), "Exception occurred while loading observations", e);
+            Log.e(getClass().getSimpleName(), "Exception occurred while loading encounters", e);
         }
         return createObsJsonArray(observations);
     }
@@ -771,7 +668,7 @@ class HTMLFormDataStore {
             String conceptUuid = obs.getConcept().getUuid();
             for (Concept concept : concepts) {
                 if (concept.getUuid().equals(conceptUuid)) {
-                    conceptName = getConceptNameFromConceptNamesByLocale(concept.getConceptNames(),getApplicationLanguage());
+                    conceptName = concept.getName();
                 }
             }
             final String dateFormat = STANDARD_DATE_FORMAT;
@@ -808,7 +705,7 @@ class HTMLFormDataStore {
             if(obs.getValueCoded() != null) {
                 codedConcept.put("uuid",obs.getValueCoded().getUuid());
                 codedConcept.put("id",obs.getValueCoded().getId());
-                codedConcept.put("name",getConceptNameFromConceptNamesByLocale(obs.getValueCoded().getConceptNames(),getApplicationLanguage()));;
+                codedConcept.put("name",obs.getValueCoded().getName());
                 json.put("valueCoded",codedConcept);
             }else{
                 json.put("valueCoded", obs.getValueCoded());
@@ -819,7 +716,6 @@ class HTMLFormDataStore {
             json.put("uuid",obs.getUuid());
             json.put("valueComplex", obs.getValueComplex());
             json.put("valueDatetime",convertedvalueDateTime);
-            json.put("obs_comment", obs.getComment());
             map.put("json" + i, json);
             arr.put(map.get("json" + i));
             i++;
@@ -1132,74 +1028,5 @@ class HTMLFormDataStore {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(formWebViewActivity.getApplicationContext());
         String applicationLanguage = preferences.getString(formWebViewActivity.getResources().getString(R.string.preference_app_language), formWebViewActivity.getResources().getString(R.string.language_english));
         return applicationLanguage;
-    }
-
-    public void setSelectedPatientsUuids(String selectedPatientsUuids) {
-        this.selectedPatientsUuids = selectedPatientsUuids;
-    }
-
-    @JavascriptInterface
-    public String getSelectedPatientsUuids(){
-        return selectedPatientsUuids;
-    }
-
-    public List<Patient> getPatientsFromCommaSeparatedString(String patientUUids){
-        List<Patient> patients = new ArrayList<>();
-        patientUUids = patientUUids.replace("[","");
-        patientUUids = patientUUids.replace("]","");
-        patientUUids = patientUUids.replaceAll("\"","");
-        List<String> patientUuidList = Arrays.asList(patientUUids.split(","));
-        for(String patientUuid : patientUuidList){
-            try {
-                Patient patient = patientController.getPatientByUuid(patientUuid);
-                patients.add(patient);
-            } catch (PatientController.PatientLoadException e) {
-                Log.e(getClass().getSimpleName(),"Encountered an exception",e);
-            }
-        }
-        return patients;
-    }
-
-    private String setPatientInfoToThePayload(Patient patient,String jsonPayload) {
-        try {
-            JSONObject jsonObject = new JSONObject(jsonPayload);
-            JSONObject jsonObjectInner = jsonObject.getJSONObject("patient");
-            if ((jsonObjectInner.has("patient.uuid"))) {
-                jsonObjectInner.remove("patient.uuid");
-                jsonObjectInner.put("patient.uuid", patient.getUuid());
-                jsonObject.put("patient", jsonObjectInner);
-                jsonPayload = jsonObject.toString();
-            }
-            if ((jsonObjectInner.has("patient.names"))) {
-                jsonObjectInner.remove("patient.names");
-                jsonObjectInner.put("patient.names", patient.getDisplayName());
-                jsonObject.put("patient", jsonObjectInner);
-                jsonPayload = jsonObject.toString();
-            }
-            if ((jsonObjectInner.has("patient.birth_date"))) {
-                jsonObjectInner.remove("patient.birth_date");
-                jsonObjectInner.put("patient.birth_date", patient.getDisplayName());
-                jsonObject.put("patient", jsonObjectInner);
-                jsonPayload = jsonObject.toString();
-            }
-            if (!(jsonObjectInner.has("patient.sex"))) {
-                jsonObjectInner.remove("patient.sex");
-                jsonObjectInner.put("patient.sex", patient.getGender());
-                jsonObject.put("patient", jsonObjectInner);
-                jsonPayload = jsonObject.toString();
-            }
-            if ((jsonObjectInner.has("patient.medical_record_number"))) {
-                jsonObjectInner.remove("patient.medical_record_number");
-                jsonObjectInner.put("patient.medical_record_number", patient.getIdentifier());
-                jsonObject.put("patient", jsonObjectInner);
-                jsonPayload = jsonObject.toString();
-            }
-
-            return jsonPayload;
-        } catch (JSONException e) {
-            Log.e(getClass().getSimpleName(), "Error while parsing response JSON", e);
-        }
-
-        return jsonPayload;
     }
 }

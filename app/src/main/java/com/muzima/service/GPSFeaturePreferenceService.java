@@ -29,13 +29,13 @@ public class GPSFeaturePreferenceService extends PreferenceService {
     }
 
     public void updateGPSDataPreferenceSettings(){
-        boolean isGPSDataCollectionEnabled = application.getMuzimaSettingController()
+        boolean isGPDDataCollectionEnabled = application.getMuzimaSettingController()
                 .isGPSDataEnabled();
         Resources resources = context.getResources();
         String key = resources.getString(R.string.preference_enable_gps_key);
 
         preferences.edit()
-                .putBoolean(key, isGPSDataCollectionEnabled)
+                .putBoolean(key, isGPDDataCollectionEnabled)
                 .apply();
     }
 

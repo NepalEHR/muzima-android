@@ -13,7 +13,6 @@ package com.muzima.controller;
 import android.util.Log;
 
 import com.muzima.api.model.CohortMember;
-import com.muzima.api.model.Observation;
 import com.muzima.api.model.Patient;
 import com.muzima.api.model.PatientIdentifier;
 import com.muzima.api.model.PatientIdentifierType;
@@ -21,7 +20,6 @@ import com.muzima.api.model.PatientTag;
 import com.muzima.api.model.PersonAttributeType;
 import com.muzima.api.service.CohortService;
 import com.muzima.api.service.FormService;
-import com.muzima.api.service.ObservationService;
 import com.muzima.api.service.PatientService;
 import com.muzima.api.service.PatientTagService;
 import com.muzima.utils.CustomColor;
@@ -39,10 +37,6 @@ import static com.muzima.utils.Constants.LOCAL_PATIENT;
 import static com.muzima.utils.Constants.STATUS_COMPLETE;
 import static com.muzima.utils.Constants.STATUS_INCOMPLETE;
 
-import static com.muzima.utils.Constants.FGH.TagsUuids.ALREADY_ASSIGNED_TAG_UUID;
-import static com.muzima.utils.Constants.FGH.TagsUuids.AWAITING_ASSIGNMENT_TAG_UUID;
-import static com.muzima.utils.Constants.FGH.TagsUuids.HAS_SEXUAL_PARTNER_TAG_UUID;
-
 public class PatientController {
 
     private final PatientService patientService;
@@ -51,17 +45,14 @@ public class PatientController {
     private List<PatientTag> selectedTags;
     private FormService formService;
     private PatientTagService patientTagService;
-    private ObservationService observationService;
 
-
-    public PatientController(PatientService patientService, CohortService cohortService, FormService formService, PatientTagService patientTagService, ObservationService observationService) {
+    public PatientController(PatientService patientService, CohortService cohortService, FormService formService,PatientTagService patientTagService) {
         this.patientService = patientService;
         this.cohortService = cohortService;
         tagColors = new HashMap<>();
         selectedTags = new ArrayList<>();
         this.formService = formService;
-        this.patientTagService = patientTagService;
-        this.observationService = observationService;
+        this.patientTagService= patientTagService;
     }
 
     public void replacePatients(List<Patient> patients) throws PatientSaveException {
@@ -229,16 +220,6 @@ public class PatientController {
         }
     }
 
-    public void generatePatientTags(List<Patient> patients) throws PatientSaveException {
-        try {
-
-            patientService.savePatients(patients);
-        } catch (IOException e) {
-            Log.e(getClass().getSimpleName(), "Error while saving the patient list", e);
-            throw new PatientSaveException(e);
-        }
-    }
-
     public void deletePatient(Patient localPatient) {
         try {
             deleteOrMarkAsPendingDeletion(localPatient);
@@ -383,59 +364,13 @@ public class PatientController {
         if (tagsUuid == null || tagsUuid.isEmpty()) {
             return patients;
         }
-        boolean isPartnerTagNeeded = tagsUuid.contains(HAS_SEXUAL_PARTNER_TAG_UUID);
-        if(isPartnerTagNeeded && tagsUuid.size() > 1) {
-            tagsUuid.remove(HAS_SEXUAL_PARTNER_TAG_UUID);
-        }
-
-        boolean isAlTagsNeeded = tagsUuid.contains(ALREADY_ASSIGNED_TAG_UUID);
-        if(isAlTagsNeeded){
-            tagsUuid.remove(ALREADY_ASSIGNED_TAG_UUID);
-        }
-
-        boolean isAaTagsNeeded = tagsUuid.contains(AWAITING_ASSIGNMENT_TAG_UUID);
-        if(isAaTagsNeeded){
-            tagsUuid.remove(AWAITING_ASSIGNMENT_TAG_UUID);
-        }
-
         List<Patient> filteredPatients = new ArrayList<>();
         for (Patient patient : patients) {
             PatientTag[] patientTags = patient.getTags();
-            if (tagsUuid.isEmpty()) {
-                filteredPatients.add(patient);
-            } else {
-                for (PatientTag patientTag : patientTags) {
-                    if (tagsUuid.contains(patientTag.getUuid())) {
-                        filteredPatients.add(patient);
-                        break;
-                    }
-                }
-            }
-
-            if(isPartnerTagNeeded && filteredPatients.contains(patient)){
-                boolean hasPartnerTag = false;
-                for (PatientTag patientTag : patientTags) {
-                    if(HAS_SEXUAL_PARTNER_TAG_UUID.equals(patientTag.getUuid())){
-                        hasPartnerTag = true;
-                        break;
-                    }
-                }
-                if(!hasPartnerTag){
-                    filteredPatients.remove(patient);
-                }
-            }
-            if((isAlTagsNeeded || isAaTagsNeeded) && filteredPatients.contains(patient)){
-                boolean hasAlAaTag = false;
-                for (PatientTag patientTag : patientTags) {
-
-                    if(isAlTagsNeeded && ALREADY_ASSIGNED_TAG_UUID.equals(patientTag.getUuid()) ||
-                            isAaTagsNeeded && AWAITING_ASSIGNMENT_TAG_UUID.equals(patientTag.getUuid())){
-                        hasAlAaTag = true;
-                        break;
-                    }
-                }
-                if(!hasAlAaTag){
-                    filteredPatients.remove(patient);
+            for (PatientTag patientTag : patientTags) {
+                if (tagsUuid.contains(patientTag.getUuid())) {
+                    filteredPatients.add(patient);
+                    break;
                 }
             }
         }
@@ -457,10 +392,6 @@ public class PatientController {
         int formCount = getFormDataCount(patient.getUuid());
         if(formCount == 0 ){
             patientService.deletePatient(patient);
-            List<Observation> observations = observationService.getObservationsByPatient(patient);
-            if(observations.size()>0) {
-                observationService.deleteObservations(observations);
-            }
         }else{
             Patient pat = patientService.getPatientByUuid(patient.getUuid());
             pat.setDeletionStatus(PATIENT_DELETION_PENDING_STATUS);
@@ -475,10 +406,6 @@ public class PatientController {
                 int formCount = getFormDataCount(patient.getUuid());
                 if(formCount == 0){
                     patientService.deletePatient(patient);
-                    List<Observation> observations = observationService.getObservationsByPatient(patient);
-                    if(observations.size()>0) {
-                        observationService.deleteObservations(observations);
-                    }
                 }
             }
         } catch (IOException e) {

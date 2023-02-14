@@ -144,23 +144,8 @@ public class FormController {
     }
 
     public List<Form> getAllAvailableForms() throws FormFetchException {
-        List<Form> allAvailableForms = new ArrayList<>();
         try {
-            List<String> formsInConfig = getFormListAsPerConfigOrder();
-            boolean isDisplayOnlyFormsInSetupConfig= muzimaApplication.getMuzimaSettingController().isDisplayOnlyFormsInConfigEnabled();
-            if(isDisplayOnlyFormsInSetupConfig) {
-                List<Form> allForms = formService.getAllForms();
-                for(Form form: allForms){
-                    if(formsInConfig.contains(form.getUuid())){
-                        allAvailableForms.add(form);
-                    }
-                }
-            }else{
-                allAvailableForms = formService.getAllForms();
-            }
-
-            return allAvailableForms;
-
+            return formService.getAllForms();
         } catch (IOException e) {
             throw new FormFetchException(e);
         }
@@ -172,20 +157,8 @@ public class FormController {
             List<Form> filteredForms = filterFormsByTags(allForms, tagsUuid, alwaysIncludeRegistrationForms);
             AvailableForms availableForms = new AvailableForms();
             availableForms = getAvailableForms(filteredForms);
-            AvailableForms availableFormsInConfig = new AvailableForms();
 
-            List<String> formsInConfig = getFormListAsPerConfigOrder();
-            boolean isDisplayOnlyFormsInSetupConfig= muzimaApplication.getMuzimaSettingController().isDisplayOnlyFormsInConfigEnabled();
-            if(isDisplayOnlyFormsInSetupConfig) {
-                for(AvailableForm form: availableForms){
-                    if(formsInConfig.contains(form.getFormUuid())){
-                        availableFormsInConfig.add(form);
-                    }
-                }
-                return availableFormsInConfig;
-            }else{
-                return availableForms;
-            }
+            return availableForms;
         } catch (IOException e) {
             throw new FormFetchException(e);
         }
@@ -533,7 +506,7 @@ public class FormController {
                                     .withEncounterDate(formData.getEncounterDate())
                                     .build();
                             completeForms.add(completeForm);
-                        }else if (formData.getDiscriminator().equals(Constants.FORM_JSON_DISCRIMINATOR_SHR_REGISTRATION)) {
+                        } else if (formData.getDiscriminator().equals(Constants.FORM_JSON_DISCRIMINATOR_SHR_REGISTRATION)) {
                             CompleteFormWithPatientData completeForm = new CompleteFormWithPatientDataBuilder()
                                     .withSHRRegistrationForm(form, context)
                                     .withFormDataUuid(formData.getUuid())
@@ -542,18 +515,9 @@ public class FormController {
                                     .withEncounterDate(formData.getEncounterDate())
                                     .build();
                             completeForms.add(completeForm);
-                        }else if (formData.getDiscriminator().equals(FORM_JSON_DISCRIMINATOR_RELATIONSHIP)) {
+                        } else if (formData.getDiscriminator().equals(Constants.FORM_JSON_DISCRIMINATOR_RELATIONSHIP)) {
                             CompleteFormWithPatientData completeForm = new CompleteFormWithPatientDataBuilder()
                                     .withRelationshipForm(form, context)
-                                    .withFormDataUuid(formData.getUuid())
-                                    .withPatient(patient)
-                                    .withLastModifiedDate(formData.getSaveTime())
-                                    .withEncounterDate(formData.getEncounterDate())
-                                    .build();
-                            completeForms.add(completeForm);
-                        }else if (formData.getDiscriminator().equals(Constants.FORM_JSON_DISCRIMINATOR_DEMOGRAPHICS_UPDATE)) {
-                            CompleteFormWithPatientData completeForm = new CompleteFormWithPatientDataBuilder()
-                                    .withDemographicsUpdateForm(form, context)
                                     .withFormDataUuid(formData.getUuid())
                                     .withPatient(patient)
                                     .withLastModifiedDate(formData.getSaveTime())
@@ -649,7 +613,7 @@ public class FormController {
         return result;
     }
 
-    public Patient createNewPatient(MuzimaApplication muzimaApplication, FormData formData) throws FormDataProcessException {
+    public Patient createNewPatient(MuzimaApplication muzimaApplication, FormData formData)  throws FormDataProcessException{
         try {
             Patient patient;
             if (isGenericRegistrationHTMLFormData(formData)) {
@@ -657,6 +621,7 @@ public class FormController {
             } else if (isRegistrationHTMLFormData(formData)) {
                 patient = new HTMLPatientJSONMapper().getPatient(muzimaApplication, formData.getJsonPayload());
             } else if (isRegistrationXMLFormData(formData)) {
+
                 patient = new PatientJSONMapper(formData.getJsonPayload()).getPatient();
             } else {
                 throw new Exception("Could not determine type of registration form: ["+formData.getDiscriminator()+"]. Patient not created.");
@@ -664,7 +629,9 @@ public class FormController {
             patientService.savePatient(patient);
             return patient;
         } catch (Exception e) {
-            throw new FormDataProcessException(e);
+            Log.d("Error", e.toString());
+          throw new FormDataProcessException(e);
+//            return  null;
         }
     }
 
@@ -734,7 +701,6 @@ public class FormController {
         AvailableForms result = new AvailableForms();
         for (AvailableForm form : getRecommendedFormsByTagsSortedByConfigOrder(null, false)) {
             if (form.isDownloaded() && !form.isRegistrationForm() && !form.isProviderReport()
-                    && !form.isProviderPerformanceReport()
                     && !form.isRelationshipForm() && !form.isPersonUpdateForm()) {
                 result.add(form);
             }
@@ -745,7 +711,7 @@ public class FormController {
     public AvailableForms getProviderReports() throws FormFetchException {
         AvailableForms result = new AvailableForms();
         for (AvailableForm form : getAvailableFormByTags(null)) {
-            if (form.isDownloaded() && (form.isProviderReport() || form.isProviderPerformanceReport())) {
+            if (form.isDownloaded() && form.isProviderReport()) {
                 result.add(form);
             }
         }
@@ -768,10 +734,6 @@ public class FormController {
         } catch (FormDataFetchException e) {
             throw new FormDataDeleteException(e);
         }
-    }
-
-    public void deleteCompleteAndIncompleteFormData(List<FormData> formDataList) throws FormDataDeleteException {
-        deleteEncounterFormDataAndRelatedPatientData(formDataList);
     }
 
     public boolean isFormWithPatientDataAvailable(Context context) throws FormFetchException {
@@ -1136,22 +1098,15 @@ public class FormController {
     public void deleteEncounterFormDataAndRelatedPatientData(List<FormData> formDataList) throws FormDataDeleteException {
         try {
             for (FormData formData : formDataList) {
-                boolean parseAsFormData = false;
                 if(formData.getDiscriminator().equals(Constants.FORM_JSON_DISCRIMINATOR_INDIVIDUAL_OBS)){
                     String jsonPayload = formData.getJsonPayload();
                     org.json.JSONObject responseJSON = new org.json.JSONObject(jsonPayload);
                     org.json.JSONObject encounterObject = responseJSON.getJSONObject("encounter");
-                    if(encounterObject.has("encounter.encounter_uuid")) {
-                        String encounterUuid = encounterObject.getString("encounter.encounter_uuid");
-                        List<Observation> observations = observationService.getObservationsByEncounter(encounterUuid);
-                        observationService.deleteObservations(observations);
-                        formService.deleteFormData(formData);
-                    } else {
-                        parseAsFormData = true;
-                    }
-                }
-
-                if(parseAsFormData || !formData.getDiscriminator().equals(Constants.FORM_JSON_DISCRIMINATOR_INDIVIDUAL_OBS)){
+                    String encounterUuid = encounterObject.getString("encounter.encounter_uuid");
+                    List<Observation> observations = observationService.getObservationsByEncounter(encounterUuid);
+                    observationService.deleteObservations(observations);
+                    formService.deleteFormData(formData);
+                }else {
                     if (isCompleteFormData(formData) || isArchivedFormData(formData)) {
                         List<Encounter> encounters = encounterService.getEncountersByFormDataUuid(formData.getUuid());
                         for (Encounter encounter : encounters) {
@@ -1167,7 +1122,7 @@ public class FormController {
         } catch (IOException e) {
             throw new FormDataDeleteException(e);
         } catch (JSONException e) {
-            Log.e(getClass().getSimpleName(),"Encounter an JSON exception",e);
+            e.printStackTrace();
         }
     }
 
@@ -1299,17 +1254,14 @@ public class FormController {
         }
 
         //add forms not in the setup config
-        boolean isDisplayOnlyFormsInSetupConfig= muzimaApplication.getMuzimaSettingController().isDisplayOnlyFormsInConfigEnabled();
-        if(!isDisplayOnlyFormsInSetupConfig) {
-            for (Form filteredForm : filteredForms) {
-                if (!formUuids.contains(filteredForm.getUuid())) {
-                    boolean downloadStatus = formService.isFormTemplateDownloaded(filteredForm.getUuid());
-                    AvailableForm availableForm = new AvailableFormBuilder()
-                            .withAvailableForm(filteredForm)
-                            .withDownloadStatus(downloadStatus)
-                            .withUpdateAvailableStatus(filteredForm.isUpdateAvailable()).build();
-                    availableForms.add(availableForm);
-                }
+        for (Form filteredForm : filteredForms) {
+            if (!formUuids.contains(filteredForm.getUuid())) {
+                boolean downloadStatus = formService.isFormTemplateDownloaded(filteredForm.getUuid());
+                AvailableForm availableForm = new AvailableFormBuilder()
+                        .withAvailableForm(filteredForm)
+                        .withDownloadStatus(downloadStatus)
+                        .withUpdateAvailableStatus(filteredForm.isUpdateAvailable()).build();
+                availableForms.add(availableForm);
             }
         }
 

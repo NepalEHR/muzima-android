@@ -15,7 +15,6 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -31,7 +30,6 @@ import com.muzima.model.AvailableForm;
 import com.muzima.model.collections.AvailableForms;
 import com.muzima.utils.ThemeUtils;
 import com.muzima.view.patients.PatientSummaryActivity;
-import com.muzima.view.relationship.RelationshipsListActivity;
 
 import static com.muzima.view.relationship.RelationshipsListActivity.INDEX_PATIENT;
 
@@ -39,14 +37,12 @@ public class PersonDemographicsUpdateFormsActivity extends AppCompatActivity {
     public static final String PERSON = "person";
     private RelationshipFormsAdapter relationshipFormsAdapter;
     private Patient person;
-    private Patient indexPatient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         ThemeUtils.getInstance().onCreate(this,true);
         super.onCreate(savedInstanceState);
 
-        indexPatient = (Patient) getIntent().getSerializableExtra(INDEX_PATIENT);
         Person selectedRelatedPerson = (Person) getIntent().getSerializableExtra(PERSON);
         if(selectedRelatedPerson != null) {
             person = new Patient();
@@ -91,18 +87,6 @@ public class PersonDemographicsUpdateFormsActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            Intent intent = new Intent(this.getApplicationContext(), RelationshipsListActivity.class);
-            if(indexPatient != null)
-                intent.putExtra(PatientSummaryActivity.PATIENT, indexPatient);
-            startActivity(intent);
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
     private AvailableForms getPersonUpdateForms(FormController formController) {
         AvailableForms availableForms = null;
         try {
@@ -114,6 +98,8 @@ public class PersonDemographicsUpdateFormsActivity extends AppCompatActivity {
     }
 
     private void startWebViewActivity(AvailableForm form) {
+        Patient indexPatient = (Patient) getIntent().getSerializableExtra(INDEX_PATIENT);
+
         Intent intent = new FormViewIntent(this, form, person , true);
         intent.putExtra(INDEX_PATIENT, indexPatient);
 

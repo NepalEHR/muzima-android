@@ -20,15 +20,11 @@ import com.muzima.api.model.Cohort;
 import com.muzima.api.model.CohortData;
 import com.muzima.api.model.CohortMember;
 import com.muzima.api.model.LastSyncTime;
-import com.muzima.api.model.MuzimaSetting;
 import com.muzima.api.model.Provider;
-import com.muzima.api.model.SetupConfigurationTemplate;
 import com.muzima.api.model.User;
 import com.muzima.api.service.CohortService;
 import com.muzima.api.service.LastSyncTimeService;
-import com.muzima.model.ConceptIcons;
 import com.muzima.service.SntpService;
-import com.muzima.util.JsonUtils;
 import com.muzima.utils.StringUtils;
 
 import java.io.IOException;
@@ -83,47 +79,12 @@ public class CohortController {
 
 
     public List<Cohort> getAllCohorts() throws CohortFetchException {
-        MuzimaSettingController muzimaSettingController = muzimaApplication.getMuzimaSettingController();
         try {
-            List<Cohort> allCohorts = cohortService.getAllCohorts();
-            boolean isDisplayOnlyCohortsInConfig = muzimaSettingController.isDisplayOnlyCohortsInConfigEnabled();
-            if(isDisplayOnlyCohortsInConfig) {
-                List<Cohort> cohortsInConfig = new ArrayList<>();
-                List<String> cohortUuids = getCohortsInConfig();
-                for(Cohort cohort : allCohorts){
-                   if(cohortUuids.contains(cohort.getUuid())){
-                       cohortsInConfig.add(cohort);
-                   }
-                }
-                return cohortsInConfig;
-            } else {
-                return allCohorts;
-            }
+            return cohortService.getAllCohorts();
         } catch (IOException e) {
             throw new CohortFetchException(e);
         }
     }
-
-    public List<String> getCohortsInConfig(){
-            String json = "";
-            List<String> cohortUuids = new ArrayList<>();
-            try {
-                SetupConfigurationTemplate activeSetupConfig = muzimaApplication.getSetupConfigurationController().getActiveSetupConfigurationTemplate();
-                json = activeSetupConfig.getConfigJson();
-            } catch (SetupConfigurationController.SetupConfigurationFetchException e) {
-                Log.e(getClass().getSimpleName(),"Encountered an exception while fetching setup config", e);
-            }
-
-            List<Object> cohorts = JsonUtils.readAsObjectList(json, "$['config']['cohorts']");
-            for (Object cohort : cohorts) {
-                net.minidev.json.JSONObject cohort1 = (net.minidev.json.JSONObject) cohort;
-                String cohortUuid = cohort1.get("uuid").toString();
-
-                cohortUuids.add(cohortUuid);
-            }
-
-            return cohortUuids;
-        }
 
     public int countAllCohorts() throws CohortFetchException {
         try {
@@ -282,27 +243,14 @@ public class CohortController {
 
     public List<Cohort> getSyncedCohorts() throws CohortFetchException {
         try {
-            List<Cohort> allCohorts = cohortService.getAllCohorts();
+            List<Cohort> cohorts = cohortService.getAllCohorts();
             List<Cohort> syncedCohorts = new ArrayList<>();
-            for (Cohort cohort : allCohorts) {
+            for (Cohort cohort : cohorts) {
                 if (isDownloaded(cohort)) {
                     syncedCohorts.add(cohort);
                 }
             }
-            boolean isDisplayOnlyCohortsInConfig = muzimaApplication.getMuzimaSettingController().isDisplayOnlyCohortsInConfigEnabled();
-            if(isDisplayOnlyCohortsInConfig) {
-                List<Cohort> cohortsInConfig = new ArrayList<>();
-                List<String> cohortUuids = getCohortsInConfig();
-                for(Cohort cohort : syncedCohorts){
-                    if(cohortUuids.contains(cohort.getUuid())){
-                        cohortsInConfig.add(cohort);
-                    }
-                }
-                return cohortsInConfig;
-            }else {
-                return syncedCohorts;
-            }
-
+            return syncedCohorts;
         } catch (IOException e) {
             throw new CohortFetchException(e);
         }
@@ -317,19 +265,7 @@ public class CohortController {
                     unSyncedCohorts.add(cohort);
                 }
             }
-           boolean isDisplayOnlyCohortsInConfig = muzimaApplication.getMuzimaSettingController().isDisplayOnlyCohortsInConfigEnabled();
-            if(isDisplayOnlyCohortsInConfig) {
-                List<Cohort> cohortsInConfig = new ArrayList<>();
-                List<String> cohortUuids = getCohortsInConfig();
-                for(Cohort cohort : unSyncedCohorts){
-                    if(cohortUuids.contains(cohort.getUuid())){
-                        cohortsInConfig.add(cohort);
-                    }
-                }
-                return cohortsInConfig;
-            }else {
-                return unSyncedCohorts;
-            }
+            return unSyncedCohorts;
         } catch (IOException e) {
             throw new CohortFetchException(e);
         }
@@ -387,25 +323,12 @@ public class CohortController {
         }
     }
 
-    public void setSyncStatus(String[] cohortUuids, int status) throws CohortUpdateException {
+    public void setSyncStatus(String[] cohortUuids) throws CohortUpdateException {
         try {
             for (String cohortUuid : cohortUuids) {
                 Cohort cohort = cohortService.getCohortByUuid(cohortUuid);
                 if (cohort != null) {
-                    cohort.setSyncStatus(status);
-                    cohortService.updateCohort(cohort);
-                }
-            }
-        } catch (IOException e) {
-            throw new CohortUpdateException(e);
-        }
-    }
-    public void setSyncStatus(List<String> cohortUuids, int status) throws CohortUpdateException {
-        try {
-            for (String cohortUuid : cohortUuids) {
-                Cohort cohort = cohortService.getCohortByUuid(cohortUuid);
-                if (cohort != null) {
-                    cohort.setSyncStatus(status);
+                    cohort.setSyncStatus(1);
                     cohortService.updateCohort(cohort);
                 }
             }
@@ -416,29 +339,6 @@ public class CohortController {
 
     public int countSyncedCohorts() throws CohortFetchException {
         return getSyncedCohorts().size();
-    }
-
-    public void deletePatientsNotBelongingToAnotherCohortByCohortUuids(List<String> cohortUuids){
-        for(String cohortUuid : cohortUuids){
-            try {
-                List<CohortMember> cohortMembers = cohortService.getCohortMembers(cohortUuid);
-                for(CohortMember cohortMember : cohortMembers){
-                    List<CohortMember> patientMembership = cohortService.getCohortMembershipByPatientUuid(cohortMember.getPatient().getUuid());
-                    if(patientMembership.size()==1){
-                        muzimaApplication.getPatientController().deleteOrMarkAsPendingDeletion(cohortMember.getPatient());
-                    }
-                }
-            } catch (IOException e) {
-                Log.e(getClass().getSimpleName(),"Error getting cohort membership ",e);
-            }
-
-        }
-    }
-
-    public void deleteAllCohortMembersByCohortUuids(List<String> cohortUuids) throws CohortReplaceException {
-        for (String cohortUuid : cohortUuids) {
-            deleteAllCohortMembers(cohortUuid);
-        }
     }
 
     public void deleteAllCohortMembers(String cohortUuid) throws CohortReplaceException {
@@ -488,15 +388,6 @@ public class CohortController {
             return cohortList;
         } catch (IOException e) {
             throw new CohortDownloadException(e);
-        }
-    }
-
-    public List<Cohort> getCohorts() throws CohortFetchException {
-        try {
-            List<Cohort> allCohorts = cohortService.getAllCohorts();
-            return allCohorts;
-        } catch (IOException e) {
-            throw new CohortFetchException(e);
         }
     }
 

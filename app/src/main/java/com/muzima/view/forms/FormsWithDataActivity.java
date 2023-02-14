@@ -26,7 +26,6 @@ import android.util.Log;
 import android.view.ActionMode;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,7 +44,6 @@ import com.muzima.utils.DateUtils;
 import com.muzima.utils.LanguageUtil;
 import com.muzima.utils.NetworkUtils;
 import com.muzima.utils.StringUtils;
-import com.muzima.utils.TagsUtil;
 import com.muzima.utils.ThemeUtils;
 import com.muzima.view.MainDashboardActivity;
 
@@ -105,8 +103,8 @@ public class FormsWithDataActivity extends FormsActivityBase {
             }
         }
 
-        if(patient != null) {
-            findViewById(R.id.client_summary_view_app_bar_layout).setVisibility(View.VISIBLE);
+        if(patient!= null) {
+            findViewById(R.id.client_summary_view).setVisibility(View.VISIBLE);
             TextView patientNameTextView = findViewById(R.id.name);
             ImageView patientGenderImageView = findViewById(R.id.genderImg);
             TextView dobTextView = findViewById(R.id.dateOfBirth);
@@ -115,14 +113,9 @@ public class FormsWithDataActivity extends FormsActivityBase {
 
             patientNameTextView.setText(patient.getDisplayName());
             identifierTextView.setText(String.format(Locale.getDefault(), "ID:#%s", patient.getIdentifier()));
-            if(patient.getBirthdate() != null) {
-                dobTextView.setText(getString(R.string.general_date_of_birth ,String.format(" %s", new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(patient.getBirthdate()))));
-                ageTextView.setText(getString(R.string.general_years ,String.format(Locale.getDefault(), "%d ", DateUtils.calculateAge(patient.getBirthdate()))));
-            }
+            dobTextView.setText(String.format("DOB: %s", new SimpleDateFormat("MM-dd-yyyy", Locale.getDefault()).format(patient.getBirthdate())));
             patientGenderImageView.setImageResource(getGenderImage(patient.getGender()));
-
-            LinearLayout tagsLayout = findViewById(R.id.menu_tags);
-            TagsUtil.loadTags(patient, tagsLayout, getApplicationContext());
+            ageTextView.setText(String.format(Locale.getDefault(), "%d Yrs", DateUtils.calculateAge(patient.getBirthdate())));
         }
     }
 

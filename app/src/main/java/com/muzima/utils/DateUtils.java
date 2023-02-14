@@ -76,27 +76,9 @@ public class DateUtils {
     }
 
     public static int calculateAge(Date birthdate) {
-        
-        try {
-            Calendar dob = Calendar.getInstance();
-            dob.setTime(birthdate);
-            Calendar now = Calendar.getInstance();
-
-            int age = now.get(Calendar.YEAR) - dob.get(Calendar.YEAR);
-
-            if (now.get(Calendar.MONTH) < dob.get(Calendar.MONTH)) {
-                age--;
-            }
-            else
-            {
-                if (now.get(Calendar.MONTH) == dob.get(Calendar.MONTH) && now.get(Calendar.DAY_OF_MONTH) < dob.get(Calendar.DAY_OF_MONTH)) {
-                    age--;
-                }
-            }
-            return age;
-        } catch (Exception e) {
-            return 0;
-        }
+        Calendar dob = Calendar.getInstance();
+        dob.setTime(birthdate);
+        return Calendar.getInstance().get(Calendar.YEAR) - dob.get(Calendar.YEAR);
     }
 
     public static String convertDateToStdString(Date date) {
@@ -121,16 +103,5 @@ public class DateUtils {
         calendar.setTime(date);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(SIMPLE_DAY_MONTH_YEAR_DATE_FORMAT, Locale.getDefault());
         return simpleDateFormat.format(calendar.getTime());
-    }
-
-    public static String getTime(Date date) {
-        SimpleDateFormat formattedDate = new SimpleDateFormat("HH:ss");
-        return formattedDate.format(date);
-    }
-
-    public static String convertLongToDateString(long time){
-        Date date = new Date(time);
-        SimpleDateFormat format = new SimpleDateFormat(STANDARD_DATE_TIMEZONE_FORMAT);
-        return format.format(date);
     }
 }

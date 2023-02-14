@@ -13,22 +13,16 @@ package com.muzima;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
+import android.os.Build;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
+import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.muzima.api.context.Context;
 import com.muzima.api.context.ContextFactory;
-import com.muzima.api.model.Cohort;
-import com.muzima.api.model.Concept;
-import com.muzima.api.model.Encounter;
-import com.muzima.api.model.FormData;
-import com.muzima.api.model.Person;
-import com.muzima.api.model.Provider;
 import com.muzima.api.model.User;
 import com.muzima.api.service.ConceptService;
 import com.muzima.api.service.EncounterService;
@@ -38,38 +32,31 @@ import com.muzima.api.service.NotificationTokenService;
 import com.muzima.api.service.ObservationService;
 import com.muzima.api.service.PersonService;
 import com.muzima.api.service.ProviderService;
-import com.muzima.controller.AppUsageLogsController;
-import com.muzima.controller.AppReleaseController;
 import com.muzima.controller.CohortController;
 import com.muzima.controller.ConceptController;
 import com.muzima.controller.EncounterController;
-import com.muzima.controller.FCMTokenController;
+import com.muzima.controller.FCMTokenContoller;
 import com.muzima.controller.FormController;
 import com.muzima.controller.LocationController;
-import com.muzima.controller.MediaCategoryController;
-import com.muzima.controller.MediaController;
 import com.muzima.controller.MinimumSupportedAppVersionController;
 import com.muzima.controller.MuzimaSettingController;
+import com.muzima.controller.NotificationController;
 import com.muzima.controller.ObservationController;
 import com.muzima.controller.PatientController;
 import com.muzima.controller.PatientReportController;
 import com.muzima.controller.PersonController;
 import com.muzima.controller.ProviderController;
 import com.muzima.controller.RelationshipController;
-import com.muzima.controller.ReportDatasetController;
 import com.muzima.controller.SetupConfigurationController;
 import com.muzima.controller.SmartCardController;
 import com.muzima.domain.Credentials;
-import com.muzima.service.FormDuplicateCheckPreferenceService;
 import com.muzima.service.GPSFeaturePreferenceService;
 import com.muzima.service.LocalePreferenceService;
 import com.muzima.service.MuzimaGPSLocationService;
 import com.muzima.service.MuzimaLoggerService;
 import com.muzima.service.MuzimaSyncService;
-import com.muzima.service.RealTimeFormDataSyncPreferenceService;
 import com.muzima.service.SntpService;
 import com.muzima.util.Constants;
-import com.muzima.utils.LanguageUtil;
 import com.muzima.utils.StringUtils;
 import com.muzima.view.forms.FormWebViewActivity;
 import com.muzima.view.forms.HTMLFormWebViewActivity;
@@ -78,7 +65,6 @@ import com.muzima.view.preferences.MuzimaTimer;
 import java.io.File;
 import java.io.IOException;
 import java.security.Security;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -90,9 +76,8 @@ import java.util.concurrent.TimeUnit;
 import io.github.inflationx.calligraphy3.CalligraphyConfig;
 import io.github.inflationx.calligraphy3.CalligraphyInterceptor;
 import io.github.inflationx.viewpump.ViewPump;
+import io.github.inflationx.viewpump.ViewPumpContextWrapper;
 
-import static com.muzima.utils.Constants.STATUS_COMPLETE;
-import static com.muzima.utils.Constants.STATUS_INCOMPLETE;
 import static com.muzima.view.preferences.MuzimaTimer.getTimer;
 
 public class MuzimaApplication extends MultiDexApplication {
@@ -105,6 +90,7 @@ public class MuzimaApplication extends MultiDexApplication {
     private ConceptController conceptController;
     private ObservationController observationController;
     private EncounterController encounterController;
+    private NotificationController notificationController;
     private LocationController locationController;
     private ProviderController providerController;
     private MuzimaSyncService muzimaSyncService;
@@ -118,19 +104,12 @@ public class MuzimaApplication extends MultiDexApplication {
     private RelationshipController relationshipController;
     private PersonController personController;
     private MinimumSupportedAppVersionController minimumSupportedAppVersionController;
-    private FCMTokenController fcmTokenController;
-    private ReportDatasetController reportDatasetController;
-    private AppUsageLogsController appUsageLogsController;
+    private FCMTokenContoller fcmTokenContoller;
     private MuzimaTimer muzimaTimer;
     private static final String APP_DIR = "/data/data/com.muzima";
     private SntpService sntpService;
     private User authenticatedUser;
-    private AppReleaseController appVersionController;
-    private MediaController mediaController;
-    private MediaCategoryController mediaCategoryController;
     private ExecutorService executorService;
-    private FormDuplicateCheckPreferenceService formDuplicateCheckPreferenceService;
-    private RealTimeFormDataSyncPreferenceService realTimeFormDataSyncPreferenceService;
 
     public void clearApplicationData() {
         try {
@@ -166,6 +145,9 @@ public class MuzimaApplication extends MultiDexApplication {
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true);
         FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(true);
 
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            Security.removeProvider("AndroidOpenSSL");
+        }
         logOut();
         muzimaTimer = getTimer(this);
 
@@ -187,6 +169,11 @@ public class MuzimaApplication extends MultiDexApplication {
                 .build());
     }
 
+    @Override
+    protected void attachBaseContext(android.content.Context base) {
+        super.attachBaseContext(ViewPumpContextWrapper.wrap(base));
+       // MultiDex.install(base);
+    }
 
     public void checkAndSetLocaleToDeviceLocaleIFDisclaimerNotAccepted() {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
@@ -286,7 +273,7 @@ public class MuzimaApplication extends MultiDexApplication {
     public PatientController getPatientController() {
         if (patientController == null) {
             try {
-                patientController = new PatientController(muzimaContext.getPatientService(), muzimaContext.getCohortService(), muzimaContext.getFormService(), muzimaContext.getPatientTagService(), muzimaContext.getObservationService());
+                patientController = new PatientController(muzimaContext.getPatientService(), muzimaContext.getCohortService(), muzimaContext.getFormService(), muzimaContext.getPatientTagService());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -319,6 +306,18 @@ public class MuzimaApplication extends MultiDexApplication {
             }
         }
         return encounterController;
+    }
+
+    public NotificationController getNotificationController() {
+        if (notificationController == null) {
+            try {
+                notificationController = new NotificationController(muzimaContext.getService(NotificationService.class),
+                        muzimaContext.getFormService(), this, getSntpService());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return notificationController;
     }
 
     public LocationController getLocationController() {
@@ -362,7 +361,7 @@ public class MuzimaApplication extends MultiDexApplication {
         if (settingsController == null) {
             try {
                 settingsController = new MuzimaSettingController(muzimaContext.getMuzimaSettingService(),
-                        muzimaContext.getLastSyncTimeService(), getSntpService(), muzimaContext.getSetupConfigurationService(), this);
+                        muzimaContext.getLastSyncTimeService(), getSntpService(), muzimaContext.getSetupConfigurationService());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -406,20 +405,6 @@ public class MuzimaApplication extends MultiDexApplication {
         return gpsFeaturePreferenceService;
     }
 
-    public FormDuplicateCheckPreferenceService getFormDuplicateCheckPreferenceService() {
-        if (formDuplicateCheckPreferenceService == null) {
-            formDuplicateCheckPreferenceService = new FormDuplicateCheckPreferenceService(this);
-        }
-        return formDuplicateCheckPreferenceService;
-    }
-
-    public RealTimeFormDataSyncPreferenceService getRealTimeFormDataSyncPreferenceService() {
-        if (realTimeFormDataSyncPreferenceService == null) {
-            realTimeFormDataSyncPreferenceService = new RealTimeFormDataSyncPreferenceService(this);
-        }
-        return realTimeFormDataSyncPreferenceService;
-    }
-
     public RelationshipController getRelationshipController() {
         if (relationshipController == null) {
             try {
@@ -461,121 +446,10 @@ public class MuzimaApplication extends MultiDexApplication {
             }
         }
         saveBeforeExit();
-
-        if(muzimaContext != null && getMuzimaSettingController().isOnlineOnlyModeEnabled()){
-            deleteAllPatientsData();
-        }
-
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         String passwordKey = getResources().getString(R.string.preference_password);
         settings.edit().putString(passwordKey, StringUtils.EMPTY).commit();
         evictAuthenticatedUser();
-    }
-
-    public void deleteAllPatientsData(){
-        List<Concept> allConcepts = new ArrayList<>();
-        try {
-            allConcepts = getConceptController().getConcepts();
-        } catch (ConceptController.ConceptFetchException e){
-            Log.e(getClass().getSimpleName(),"Could not fetch concepts",e);
-        }
-        if(!allConcepts.isEmpty()) {
-            try {
-                getObservationController().deleteAllObservations(allConcepts);
-            } catch (ObservationController.DeleteObservationException e){
-                Log.e(getClass().getSimpleName(),"Could not delete observations",e);
-            }
-        }
-
-        try {
-            List<Encounter> encounters = getEncounterController().getAllEncounters();
-            getEncounterController().deleteEncounters(encounters);
-        } catch (EncounterController.DeleteEncounterException e) {
-            Log.e(getClass().getSimpleName(),"Could not fetch encounters to be deleted",e);
-        } catch (EncounterController.FetchEncounterException e) {
-            Log.e(getClass().getSimpleName(),"Could not delete encounters",e);
-        }
-
-        try {
-            List<Cohort> syncedCohorts = getCohortController().getSyncedCohorts();
-            if (syncedCohorts.size() > 0) {
-                List<String> cohortUuids = new ArrayList<>();
-                syncedCohorts.forEach((cohort) -> {
-                    try {
-                        getCohortController().deleteAllCohortMembers(cohort.getUuid());
-                    } catch (CohortController.CohortReplaceException e) {
-                        Log.e(getClass().getSimpleName(),"Could not delete cohort members",e);
-                    }
-                    cohortUuids.add(cohort.getUuid());
-                });
-                getCohortController().setSyncStatus(cohortUuids, 0);
-            }
-        } catch (CohortController.CohortUpdateException e) {
-            Log.e(getClass().getSimpleName(),"Could not update cohorts",e);
-        } catch (CohortController.CohortFetchException e) {
-            Log.e(getClass().getSimpleName(),"Could not fetch synced cohorts",e);
-        }
-
-        try {
-            getPatientController().deleteAllPatients();
-        } catch (IOException e) {
-            Log.e(getClass().getSimpleName(),"Could not delete patients",e);
-        }
-
-        try {
-            getRelationshipController().deleteAllRelationships();
-        } catch (RelationshipController.DeleteRelationshipException e) {
-            Log.e(getClass().getSimpleName(),"Could not delete relationships",e);
-        }
-
-        try{
-            List<Provider> providers = getProviderController().getAllProviders();
-            List<Person> nonPatientPersons = new ArrayList<>();
-
-            for (Provider provider : providers){
-                nonPatientPersons.add(provider.getPerson());
-            }
-
-            User authenticated = getAuthenticatedUser();
-
-            if(authenticated != null &&  authenticated.getPerson() != null)
-                nonPatientPersons.add(authenticated.getPerson());
-
-            List<Person> availablePersons = getPersonController().getAllPersons();
-            for(Person person : availablePersons){
-                if(nonPatientPersons.contains(person)){
-                    availablePersons.remove(person);
-                }
-            }
-            getPersonController().deletePersons(availablePersons);
-
-            List<FormData> formDataList = new ArrayList<>();
-            List<FormData> incompleteForms = getFormController().getAllFormData(STATUS_INCOMPLETE);
-            List<FormData> completeForms = getFormController().getAllFormData(STATUS_COMPLETE);
-            if(incompleteForms.size()>0)
-                formDataList.addAll(incompleteForms);
-            if(completeForms.size()>0)
-                formDataList.addAll(completeForms);
-
-            getFormController().deleteCompleteAndIncompleteFormData(formDataList);
-
-        } catch (PersonController.PersonLoadException e) {
-            Log.e(getClass().getSimpleName(),"Could not load persons for deletion",e);
-        } catch (ProviderController.ProviderLoadException e) {
-            Log.e(getClass().getSimpleName(),"Could not load providers",e);
-        } catch (PersonController.PersonDeleteException e) {
-            Log.e(getClass().getSimpleName(),"Could not delete persons",e);
-        } catch (FormController.FormDataDeleteException e) {
-            Log.e(getClass().getSimpleName(),"Could not delete complete and incomplete forms",e);
-        } catch (FormController.FormDataFetchException e) {
-            Log.e(getClass().getSimpleName(),"Could not fetch complete and incomplete forms",e);
-        }
-
-        try {
-            muzimaContext.getLastSyncTimeService().deleteAllPatientDataLastSyncTime();
-        } catch (IOException e) {
-            Log.e(getClass().getSimpleName(),"Could not delete lastSyncTime",e);
-        }
     }
 
     public void cancelTimer() {
@@ -633,85 +507,14 @@ public class MuzimaApplication extends MultiDexApplication {
         return executorService;
     }
 
-    public FCMTokenController getFCMTokenController() {
-        if (fcmTokenController == null) {
+    public FCMTokenContoller getFCMTokenController() {
+        if (fcmTokenContoller == null) {
             try {
-                fcmTokenController = new FCMTokenController(muzimaContext.getService(NotificationTokenService.class), this);
+                fcmTokenContoller = new FCMTokenContoller(muzimaContext.getService(NotificationTokenService.class));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        return fcmTokenController;
+        return fcmTokenContoller;
     }
-
-    public ReportDatasetController getReportDatasetController() {
-        if(reportDatasetController == null){
-            try {
-                reportDatasetController = new ReportDatasetController(muzimaContext.getReportDatasetService(), muzimaContext.getLastSyncTimeService(), getSntpService());
-            } catch (IOException e){
-                throw new RuntimeException(e);
-            }
-        }
-        return reportDatasetController;
-    }
-
-    public AppUsageLogsController getAppUsageLogsController(){
-        if(appUsageLogsController == null){
-            try{
-                appUsageLogsController = new AppUsageLogsController(muzimaContext.getAppUsageLogsService());
-            }catch (IOException e){
-                throw new RuntimeException(e);
-            }
-        }
-
-        return appUsageLogsController;
-    }
-
-    public AppReleaseController getAppReleaseController() {
-        if (appVersionController == null) {
-            try {
-                appVersionController = new AppReleaseController(muzimaContext.getAppReleaseService(), muzimaContext.getLastSyncTimeService(), getSntpService());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return appVersionController;
-    }
-
-    public MediaCategoryController getMediaCategoryController() {
-        if (mediaCategoryController == null) {
-            try {
-                mediaCategoryController = new MediaCategoryController(muzimaContext.getMediaCategoryService(), muzimaContext.getLastSyncTimeService(), getSntpService());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return mediaCategoryController;
-    }
-
-    public MediaController getMediaController() {
-        if (mediaController == null) {
-            try {
-                mediaController = new MediaController(muzimaContext.getMediaService(), muzimaContext.getLastSyncTimeService(), getSntpService());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return mediaController;
-    }
-
-    public String getApplicationVersion() {
-        String versionText = "";
-        String versionCode = "";
-        try {
-            versionCode = String.valueOf(getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
-            LanguageUtil languageUtil = new LanguageUtil();
-            android.content.Context localizedContext = languageUtil.getLocalizedContext(this);
-            versionText = localizedContext.getResources().getString(R.string.general_application_version, versionCode);
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e(getClass().getSimpleName(), "Unable to read application version.", e);
-        }
-        return versionText;
-    }
-
 }

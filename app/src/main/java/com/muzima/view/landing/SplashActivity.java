@@ -23,11 +23,12 @@ import com.muzima.view.BaseAuthenticatedActivity;
 import com.muzima.view.initialwizard.SetupMethodPreferenceWizardActivity;
 
 public class SplashActivity extends BaseAuthenticatedActivity {
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
-        handleInitializeTimer();
+//        handleInitializeTimer();
     }
 
     private void handleInitializeTimer() {

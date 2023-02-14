@@ -23,34 +23,25 @@ import com.muzima.R;
 import com.muzima.adapters.ListAdapter;
 import com.muzima.adapters.reports.AvailableReportsAdapter;
 import com.muzima.model.AvailableForm;
-import com.muzima.utils.LanguageUtil;
 import com.muzima.utils.ThemeUtils;
 import com.muzima.view.BroadcastListenerActivity;
-import com.muzima.view.custom.ActivityWithBottomNavigation;
 
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 
-public class ProviderReportListActivity extends ActivityWithBottomNavigation implements AdapterView.OnItemClickListener,
+public class ProviderReportListActivity extends BroadcastListenerActivity implements AdapterView.OnItemClickListener,
         ListAdapter.BackgroundListQueryTaskListener {
     private ListView listView;
     private View noDataView;
     private FrameLayout progressBarContainer;
     private AvailableReportsAdapter reportsAdapter;
-    private final LanguageUtil languageUtil = new LanguageUtil();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        ThemeUtils.getInstance().onCreate(this,true);
-        languageUtil.onCreate(this);
+        ThemeUtils.getInstance().onCreate(this,false);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.report_layout_list);
+        setContentView(R.layout.layout_list);
         progressBarContainer = findViewById(R.id.progressbarContainer);
-        loadBottomNavigation();
-
-        if(getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(getString(R.string.title_provider_reports));
-        }
 
         setupListView();
         setupNoDataView();
@@ -79,17 +70,12 @@ public class ProviderReportListActivity extends ActivityWithBottomNavigation imp
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+        //reportsAdapter.cancelBackgroundTask();
         AvailableForm report = reportsAdapter.getItem(position);
-        Intent intent = null;
-        if(report.isProviderReport()) {
-            intent = new Intent(this, ProviderReportViewActivity.class);
-            intent.putExtra(ProviderReportViewActivity.REPORT, report);
-        } else if(report.isProviderPerformanceReport()){
-            intent = new Intent(this, ProviderPerformanceReportViewActivity.class);
-            intent.putExtra(ProviderPerformanceReportViewActivity.REPORT, report);
-        }
+        Intent intent = new Intent(this, ProviderReportViewActivity.class);
 
-        if(intent != null) startActivity(intent);
+        intent.putExtra(ProviderReportViewActivity.REPORT, report);
+        startActivity(intent);
     }
 
     @Override
@@ -123,10 +109,4 @@ public class ProviderReportListActivity extends ActivityWithBottomNavigation imp
         Log.e(getClass().getSimpleName(), "Cancelled...");
 
     }
-
-    @Override
-    protected int getBottomNavigationMenuItemId() {
-        return R.id.action_reports;
-    }
-
 }

@@ -87,11 +87,6 @@ public class FormsRecyclerViewAdapter extends Adapter<FormsRecyclerViewAdapter.V
         return formList.size();
     }
 
-    @Override
-    public int getItemViewType(int position) {
-        return position;
-    }
-
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private final View container;
         private final TextView titleTextView;

@@ -10,28 +10,24 @@
 
 package com.muzima.adapters.observations;
 
-import static com.muzima.utils.ConceptUtils.getConceptNameFromConceptNamesByLocale;
-
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.muzima.MuzimaApplication;
 import com.muzima.R;
 import com.muzima.adapters.RecyclerAdapter;
 import com.muzima.api.model.Concept;
+import com.muzima.api.model.Encounter;
 import com.muzima.controller.ConceptController;
 import com.muzima.controller.EncounterController;
 import com.muzima.controller.ObservationController;
-import com.muzima.controller.ProviderController;
+import com.muzima.model.ObsConceptWrapper;
 import com.muzima.model.events.ClientSummaryObservationSelectedEvent;
 import com.muzima.model.observation.ConceptWithObservations;
 import com.muzima.utils.BackgroundTaskHelper;
@@ -53,9 +49,7 @@ public class ObservationsByTypeAdapter extends RecyclerAdapter<ObservationsByTyp
     final ConceptController conceptController;
     final EncounterController encounterController;
     final ObservationController observationController;
-    final ProviderController providerController;
     private final Boolean isShrData;
-    private final Boolean shouldReplaceProviderIdWithNames;
 
     public ObservationsByTypeAdapter(Context context, String patientUuid, Boolean isShrData, boolean isAddSingleElement,
                                      ConceptInputLabelClickedListener conceptInputLabelClickedListener) {
@@ -68,8 +62,6 @@ public class ObservationsByTypeAdapter extends RecyclerAdapter<ObservationsByTyp
         this.encounterController = app.getEncounterController();
         this.conceptController = app.getConceptController();
         this.observationController = app.getObservationController();
-        this.providerController = app.getProviderController();
-        this.shouldReplaceProviderIdWithNames = app.getMuzimaSettingController().isPatientTagGenerationEnabled();
         conceptWithObservationsList = new ArrayList<>();
     }
 
@@ -85,18 +77,12 @@ public class ObservationsByTypeAdapter extends RecyclerAdapter<ObservationsByTyp
     }
 
     private void bindViews(@NotNull ViewHolder holder, int position) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
-        String applicationLanguage = preferences.getString(context.getResources().getString(R.string.preference_app_language), context.getResources().getString(R.string.language_english));
-
         ConceptWithObservations conceptWithObservations = conceptWithObservationsList.get(position);
 
-        int conceptColor = observationController.getConceptColor(conceptWithObservations.getConcept().getUuid());
-        holder.observationHeaderLayout.setBackgroundColor(conceptColor);
-        if (isAddSingleElement) {
+        if (isAddSingleElement)
+            holder.titleTextView.setText(String.format(Locale.getDefault(), "+ %s", getConceptDisplay(conceptWithObservations.getConcept())));
+        else
             holder.titleTextView.setText(getConceptDisplay(conceptWithObservations.getConcept()));
-        } else {
-            holder.titleTextView.setText(getConceptDisplay(conceptWithObservations.getConcept()));
-        }
         holder.obsHorizontalListRecyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL,false));
         ObsHorizontalViewAdapter observationsListAdapter = new ObsHorizontalViewAdapter(conceptWithObservations.getObservations(), new ObsHorizontalViewAdapter.ObservationClickedListener() {
             @Override
@@ -107,15 +93,12 @@ public class ObservationsByTypeAdapter extends RecyclerAdapter<ObservationsByTyp
                     }
                 }
             }
-        }, encounterController, observationController, isShrData, isAddSingleElement, applicationLanguage, providerController, shouldReplaceProviderIdWithNames, conceptColor);
+        }, encounterController, observationController, isShrData, isAddSingleElement);
         holder.obsHorizontalListRecyclerView.setAdapter(observationsListAdapter);
     }
 
     String getConceptDisplay(Concept concept) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
-        String applicationLanguage = preferences.getString(context.getResources().getString(R.string.preference_app_language), context.getResources().getString(R.string.language_english));
-
-        String text = getConceptNameFromConceptNamesByLocale(concept.getConceptNames(),applicationLanguage);
+        String text = concept.getName();
         if (concept.getConceptType().getName().equals(Concept.NUMERIC_TYPE)) {
             text += " (" + concept.getUnit() + ")";
         }
@@ -171,16 +154,13 @@ public class ObservationsByTypeAdapter extends RecyclerAdapter<ObservationsByTyp
         private final TextView titleTextView;
         private final RecyclerView obsHorizontalListRecyclerView;
         private final ConceptInputLabelClickedListener conceptInputLabelClickedListener;
-        private final CardView observationHeaderLayout;
-
 
         public ViewHolder(@NonNull View itemView, ConceptInputLabelClickedListener conceptInputLabelClickedListener) {
             super(itemView);
             this.titleTextView = itemView.findViewById(R.id.obs_concept);
-            this.observationHeaderLayout = itemView.findViewById(R.id.value_container_cardview);
             this.obsHorizontalListRecyclerView = itemView.findViewById(R.id.obs_list);
             this.conceptInputLabelClickedListener = conceptInputLabelClickedListener;
-            this.observationHeaderLayout.setOnClickListener(this);
+            this.titleTextView.setOnClickListener(this);
         }
 
         @Override

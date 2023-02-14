@@ -10,9 +10,6 @@
 
 package com.muzima.adapters.observations;
 
-import static com.muzima.utils.ConceptUtils.getConceptNameFromConceptNamesByLocale;
-import static com.muzima.utils.Constants.FGH.Concepts.HEALTHWORKER_ASSIGNMENT_CONCEPT_ID;
-
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,10 +25,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.muzima.R;
 import com.muzima.api.model.Encounter;
 import com.muzima.api.model.Observation;
-import com.muzima.api.model.Provider;
 import com.muzima.controller.EncounterController;
 import com.muzima.controller.ObservationController;
-import com.muzima.controller.ProviderController;
 import com.muzima.utils.Constants;
 import com.muzima.utils.DateUtils;
 import com.muzima.utils.StringUtils;
@@ -41,6 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class ObsHorizontalViewAdapter extends RecyclerView.Adapter<ObsHorizontalViewAdapter.ViewHolder> {
     private final List<Observation> observationList;
@@ -48,18 +44,13 @@ public class ObsHorizontalViewAdapter extends RecyclerView.Adapter<ObsHorizontal
     private AlertDialog obsDetailsViewDialog;
     final EncounterController encounterController;
     final ObservationController observationController;
-    final ProviderController providerController;
     private final boolean isSingleElementInput;
     private final Boolean isShrData;
     private List<Integer> shrConcepts;
-    private final String applicationLanguage;
-    private final Boolean shouldReplaceProviderIdWithNames;
-    private final int conceptColor;
 
     public ObsHorizontalViewAdapter(List<Observation> observationList, ObservationClickedListener observationClickedListener,
                                     EncounterController encounterController, ObservationController observationController,
-                                    boolean isShrData, boolean isSingleElementInput, String applicationLanguage, ProviderController providerController,
-                                    boolean shouldReplaceProviderIdWithNames, int conceptColor) {
+                                    boolean isShrData, boolean isSingleElementInput) {
         this.observationList = observationList;
         this.observationClickedListener = observationClickedListener;
         this.encounterController = encounterController;
@@ -67,10 +58,6 @@ public class ObsHorizontalViewAdapter extends RecyclerView.Adapter<ObsHorizontal
         this.isShrData = isShrData;
         loadComposedShrConceptId();
         this.isSingleElementInput = isSingleElementInput;
-        this.applicationLanguage = applicationLanguage;
-        this.providerController = providerController;
-        this.conceptColor = conceptColor;
-        this.shouldReplaceProviderIdWithNames = shouldReplaceProviderIdWithNames;
     }
 
     @NotNull
@@ -83,7 +70,6 @@ public class ObsHorizontalViewAdapter extends RecyclerView.Adapter<ObsHorizontal
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Observation observation = observationList.get(position);
 
-        holder.observationContainer.setBackgroundColor(conceptColor);
         if (isShrData) {
             holder.shrEnabledImage.setVisibility(View.VISIBLE);
         } else {
@@ -106,22 +92,14 @@ public class ObsHorizontalViewAdapter extends RecyclerView.Adapter<ObsHorizontal
             if (observation.getConcept().isDatetime())
                 holder.observationValue.setText(DateUtils.convertDateToStdString(observation.getValueDatetime()));
 
+            if (!observation.getConcept().isNumeric() && !observation.getConcept().isDatetime() && !observation.getConcept().isCoded())
+                holder.observationValue.setText(observation.getValueText());
+
             if (observation.getConcept().isCoded())
-                holder.observationValue.setText(getConceptNameFromConceptNamesByLocale(observation.getValueCoded().getConceptNames(),applicationLanguage));
+                holder.observationValue.setText(observation.getValueCoded().getName());
 
-            if (!observation.getConcept().isNumeric() && !observation.getConcept().isDatetime() && !observation.getConcept().isCoded()){
-                if(shouldReplaceProviderIdWithNames && observation.getConcept().getId() == HEALTHWORKER_ASSIGNMENT_CONCEPT_ID){
-                    Provider provider = providerController.getProviderBySystemId(observation.getValueAsString());
-                    if(provider != null){
-                        holder.observationValue.setText(provider.getName());
-                    }else {
-                        holder.observationValue.setText(observation.getValueAsString());
-                    }
-                }else {
-                    holder.observationValue.setText(observation.getValueText());
-                }
-            }
-
+            if (!observation.getConcept().isNumeric() && !observation.getConcept().isDatetime() && !observation.getConcept().isCoded())
+                holder.observationValue.setText(observation.getValueText());
         }
 
         holder.observationDate.setText(DateUtils.getMonthNameFormattedDate(observation.getObservationDatetime()));
@@ -138,12 +116,10 @@ public class ObsHorizontalViewAdapter extends RecyclerView.Adapter<ObsHorizontal
         private final ImageView shrEnabledImage;
         private final ImageView observationComplexHolder;
         private final ObservationClickedListener observationClickedListener;
-        private final View observationContainer;
 
         public ViewHolder(@NonNull View view, ObservationClickedListener clickedListener) {
             super(view);
             View container = view.findViewById(R.id.item_single_obs_container);
-            this.observationContainer = view.findViewById(R.id.value_container);
             this.observationValue = view.findViewById(R.id.observation_value);
             this.observationDate = view.findViewById(R.id.item_single_obs_date_text_view);
             this.shrEnabledImage = view.findViewById(R.id.shr_card_obs_image_view);
@@ -245,16 +221,11 @@ public class ObsHorizontalViewAdapter extends RecyclerView.Adapter<ObsHorizontal
         if (StringUtils.equals(observationConceptType, "Complex")) {
             obsValueTextView.setText("Complex Obs");
         } else {
-            if(observation.getConcept().isCoded()) {
-                String observationValue = getConceptNameFromConceptNamesByLocale(observation.getValueCoded().getConceptNames(),applicationLanguage);
-                obsValueTextView.setText(observationValue);
-            }else{
-                String observationValue = observation.getValueAsString();
-                obsValueTextView.setText(observationValue);
-            }
+            String observationValue = observation.getValueAsString();
+            obsValueTextView.setText(observationValue);
         }
 
-        conceptNameTextView.setText(getConceptNameFromConceptNamesByLocale(observation.getConcept().getConceptNames(),applicationLanguage));
+        conceptNameTextView.setText(observation.getConcept().getName());
         String conceptUnits = observation.getConcept().getUnit();
 
         if (!StringUtils.isEmpty(conceptUnits)) {

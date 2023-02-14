@@ -45,7 +45,6 @@ public class Constants {
     public static final String FORM_JSON_DISCRIMINATOR_SHR_DEMOGRAPHICS_UPDATE = "json-SHR-demographics-update";
 
     public static final String FORM_DISCRIMINATOR_PROVIDER_REPORT = "provider-report";
-    public static final String FORM_DISCRIMINATOR_PROVIDER_PERFORMANCE_REPORT = "provider-performance-report";
     public static final String FORM_JSON_DISCRIMINATOR_INDIVIDUAL_OBS = "json-individual-obs";
     public static final String FORM_JSON_DISCRIMINATOR_RELATIONSHIP = "json-relationship";
     public static final String FORM_JSON_DISCRIMINATOR_PERSON_UPDATE = "json-person-demographics-update";
@@ -64,9 +63,6 @@ public class Constants {
     public static final String STANDARD_DATE_FORMAT = "dd-MM-yyyy";
     public static final String STANDARD_DATE_LOCALE_FORMAT = "dd-MM-yyyy HH:mm";
     public static final String STANDARD_DISPLAY_FORMAT = "MMM dd, yyyy HH:mm";
-    public static final String STANDARD_DATE_TIMEZONE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
-    public static final String STANDARD_TIME_FORMAT = "HH:mm";
-
 
     public static final class FORMS_LAUNCH_MODE {
         public static final int INCOMPLETE_FORMS_VIEW = 0;
@@ -90,7 +86,6 @@ public class Constants {
         public static final String FORM_IDS = "formIds";
         public static final String COHORT_IDS = "cohortIds";
         public static final String PATIENT_UUID_FOR_DOWNLOAD = "patientUUIDForDownload";
-        public static final String PATIENT_UUIDS = "patientUuids";
 
         public static final int SYNC_FORMS = 0;
         public static final int SYNC_TEMPLATES = 1;
@@ -102,6 +97,7 @@ public class Constants {
         public static final int SYNC_SELECTED_COHORTS_PATIENTS_DATA_ONLY = 7;
         public static final int SYNC_UPLOAD_FORMS = 8;
         public static final int DOWNLOAD_SELECTED_PATIENTS_FULL_DATA = 9;
+        public static final int SYNC_NOTIFICATIONS = 10;
         public static final int SYNC_REAL_TIME_UPLOAD_FORMS = 11;
         public static final int SYNC_SHR = 12;
         public static final int SYNC_PATIENT_REPORTS_HEADERS = 13;
@@ -112,8 +108,6 @@ public class Constants {
         public static final int SYNC_RELATIONSHIPS = 18;
         public static final int SYNC_ALL_PATIENT_REPORT_HEADERS_AND_REPORTS = 19;
         public static final int SYNC_SETUP_CONFIGURATION_TEMPLATES = 20;
-        public static final int UPDATE_PATIENT_TAGS = 21;
-        public static final int SYNC_REPORT_DATASETS = 22;
 
         public static class SyncStatusConstants {
             public static final int DOWNLOAD_ERROR = 0;
@@ -517,18 +511,5 @@ public class Constants {
         public static final int ALL = 0;
         public static final int DOWNLOADED = 1;
         public static final int ONLINE = 2;
-    }
-
-    public static class FGH{
-        public static class Concepts {
-            public static final int HEALTHWORKER_ASSIGNMENT_CONCEPT_ID = 1912;
-            public static final int INDEX_CASE_TESTING_CONSENT_CONCEPT_ID = 21155;
-        }
-
-        public static class TagsUuids {
-            public static final String HAS_SEXUAL_PARTNER_TAG_UUID = "6ff70505-4b1c-4b9e-b76f-fd73a5df450b";
-            public static final String ALREADY_ASSIGNED_TAG_UUID = "e7e26b4e-b3fd-11eb-8374-d0577bb73cd4";
-            public static final String AWAITING_ASSIGNMENT_TAG_UUID = "d334310f-5f04-4ecb-a09f-79ca7fc3dcbb";
-        }
     }
 }

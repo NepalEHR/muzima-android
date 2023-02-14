@@ -10,7 +10,6 @@
 
 package com.muzima.view.patients;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -34,8 +33,6 @@ import com.muzima.controller.MuzimaSettingController;
 import com.muzima.controller.PatientController;
 import com.muzima.model.location.MuzimaGPSLocation;
 import com.muzima.util.Constants;
-import com.muzima.utils.LanguageUtil;
-import com.muzima.utils.NetworkUtils;
 import com.muzima.utils.ThemeUtils;
 import com.muzima.view.BroadcastListenerActivity;
 import org.json.JSONArray;
@@ -54,37 +51,15 @@ public class PatientsLocationMapActivity extends BroadcastListenerActivity {
     private WebView webView;
 
     private String selectedPatientUuid;
-    private final LanguageUtil languageUtil = new LanguageUtil();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         ThemeUtils.getInstance().onCreate(this,true);
-        languageUtil.onCreate(this);
         super.onCreate(savedInstanceState);
-        setTitle(R.string.title_clients_locations);
         setContentView(R.layout.activity_patients_location_map);
-        if(!NetworkUtils.isConnectedToNetwork(getApplicationContext())) {
-            promptConnectionFailureMessage();
-        } else {
-            initializeHomeLocationMapView();
-            initializeMapActionButtons();
-        }
+        initializeHomeLocationMapView();
+        initializeMapActionButtons();
     }
-
-    private void promptConnectionFailureMessage(){
-        android.app.AlertDialog alertDialog = new android.app.AlertDialog.Builder(this).create();
-        alertDialog.setTitle(getString(R.string.title_internet_connection_failure));
-        alertDialog.setMessage(getString(R.string.hint_network_connection_failure_map_loading));
-        alertDialog.setButton(android.app.AlertDialog.BUTTON_POSITIVE, getString(R.string.general_ok),
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        finish();
-                    }
-                });
-        alertDialog.show();
-    }
-
     private void initializeHomeLocationMapView(){
 
         webView = findViewById(R.id.webview);
@@ -96,7 +71,9 @@ public class PatientsLocationMapActivity extends BroadcastListenerActivity {
         webSettings.setDatabaseEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setBuiltInZoomControls(false);
-        webView.setWebContentsDebuggingEnabled(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            webView.setWebContentsDebuggingEnabled(true);
+        }
 
         webView.addJavascriptInterface(this,"patientsLocationMapInterface");
         webView.loadUrl("file:///android_asset/www/maps/patientsHomeLocationMap.html");

@@ -11,7 +11,6 @@
 package com.muzima.view.preferences;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.CountDownTimer;
 import android.util.Log;
 
@@ -19,7 +18,6 @@ import com.muzima.MuzimaApplication;
 import com.muzima.service.MuzimaLoggerService;
 import com.muzima.service.TimeoutPreferenceService;
 import com.muzima.service.WizardFinishPreferenceService;
-import com.muzima.view.MainDashboardActivity;
 import com.muzima.view.login.LoginActivity;
 
 public class MuzimaTimer extends CountDownTimer {
@@ -35,7 +33,7 @@ public class MuzimaTimer extends CountDownTimer {
     public static MuzimaTimer getTimer(MuzimaApplication muzimaApplication) {
         if (muzimaTimer == null) {
             int timeout = new TimeoutPreferenceService(muzimaApplication).getTimeout();
-            muzimaTimer = new MuzimaTimer(getTimeInMillis(timeout) , 5000, muzimaApplication);
+            muzimaTimer = new MuzimaTimer(getTimeInMillis(timeout) , getTimeInMillis(timeout), muzimaApplication);
         }
         return muzimaTimer;
     }
@@ -43,33 +41,19 @@ public class MuzimaTimer extends CountDownTimer {
 
     public MuzimaTimer resetTimer(int timeOutInMin) {
         muzimaTimer.cancel();
-        muzimaTimer = new MuzimaTimer(getTimeInMillis(timeOutInMin), 5000, muzimaApplication);
+        muzimaTimer = new MuzimaTimer(getTimeInMillis(timeOutInMin), getTimeInMillis(timeOutInMin), muzimaApplication);
         muzimaTimer.start();
         return muzimaTimer;
     }
 
     @Override
     public void onTick(long l) {
-        boolean isWizardComplete = new WizardFinishPreferenceService(muzimaApplication).isWizardFinished();
-        if(muzimaApplication.getAuthenticatedUser() != null && isWizardComplete) {
-            if (l * 0.001 <= 30) {
-                Intent intent;
-                intent = new Intent(muzimaApplication, MainDashboardActivity.class);
-                intent.putExtra("AutoLogOutTimer", true);
-                intent.putExtra("RemainingTime", l);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                }
-                muzimaApplication.startActivity(intent);
-            }
-        }
     }
+
 
     @Override
     public void onFinish() {
-        if(muzimaApplication.getAuthenticatedUser() != null) {
-            logOut();
-        }
+        logOut();
     }
 
     public void restart() {

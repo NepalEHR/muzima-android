@@ -23,7 +23,6 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,7 +32,6 @@ import android.webkit.ConsoleMessage;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
@@ -77,7 +75,6 @@ import static com.muzima.controller.FormController.FormFetchException;
 import static com.muzima.utils.Constants.STATUS_COMPLETE;
 import static com.muzima.utils.Constants.STATUS_INCOMPLETE;
 import static com.muzima.view.forms.BarCodeComponent.RC_BARCODE_CAPTURE;
-import static com.muzima.view.fragments.DashboardHomeFragment.SELECTED_PATIENT_UUIDS_KEY;
 import static com.muzima.view.relationship.RelationshipsListActivity.INDEX_PATIENT;
 import static java.text.MessageFormat.format;
 
@@ -344,16 +341,14 @@ public class HTMLFormWebViewActivity extends BroadcastListenerActivity {
     }
 
     public void showWarningDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setCancelable(true);
-        builder.setIcon(ThemeUtils.getIconWarning(this));
-        builder.setTitle(getResources().getString(R.string.title_duplicate_form_data_warning));
-        builder.setMessage(getResources().getString(R.string.warning_form_data_already_exists));
-        builder.setNegativeButton(getString(R.string.general_ok), null);
-        AlertDialog dialog = builder.show();
-        //Center text massage
-        TextView messageView = dialog.findViewById(android.R.id.message);
-        messageView.setGravity(Gravity.CENTER);
+        new AlertDialog.Builder(HTMLFormWebViewActivity.this)
+                .setCancelable(true)
+                .setIcon(ThemeUtils.getIconWarning(this))
+                .setTitle(getResources().getString(R.string.title_duplicate_form_data_warning))
+                .setMessage(getResources().getString(R.string.warning_form_data_already_exists))
+                .setNegativeButton(getString(R.string.general_ok), null)
+                .create()
+                .show();
     }
 
     private Dialog.OnClickListener duplicateFormDataClickListener(final String saveType) {
@@ -507,7 +502,7 @@ public class HTMLFormWebViewActivity extends BroadcastListenerActivity {
         if (isGenericRegistrationForm() || isDemographicsUpdateForm() || isPersonRegistrationForm() || isPersonUpdateForm()) {
             formData.setJsonPayload(new GenericPatientRegistrationJSONMapper().map(((MuzimaApplication) getApplicationContext()),patient, formData, encounterProviderPreference, indexPatient));
         } else {
-            formData.setJsonPayload(new HTMLPatientJSONMapper().map(((MuzimaApplication) getApplicationContext()), patient, formData, encounterProviderPreference, getSelectedFormUuidsFromIntent()));
+            formData.setJsonPayload(new HTMLPatientJSONMapper().map(((MuzimaApplication) getApplicationContext()), patient, formData, encounterProviderPreference));
         }
     }
 
@@ -519,7 +514,9 @@ public class HTMLFormWebViewActivity extends BroadcastListenerActivity {
         getSettings().setDatabaseEnabled(true);
         getSettings().setDomStorageEnabled(true);
         getSettings().setBuiltInZoomControls(true);
-        webView.setWebContentsDebuggingEnabled(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            webView.setWebContentsDebuggingEnabled(true);
+        }
 
         FormInstance formInstance = new FormInstance(form, formTemplate);
         webView.addJavascriptInterface(formInstance, FORM_INSTANCE);
@@ -545,27 +542,12 @@ public class HTMLFormWebViewActivity extends BroadcastListenerActivity {
 
         webView.addJavascriptInterface(new HTMLFormDataStore(this, formData, isFormReload,
                 (MuzimaApplication) getApplicationContext()), HTML_DATA_STORE);
-
-        HTMLFormDataStore htmlFormDataStore = new HTMLFormDataStore(this, formData, isFormReload,
-                (MuzimaApplication) getApplicationContext());
-        htmlFormDataStore.setSelectedPatientsUuids(getSelectedFormUuidsFromIntent());
-        webView.addJavascriptInterface(htmlFormDataStore, HTML_DATA_STORE);
-
         webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
         if (isFormComplete()) {
             webView.setOnTouchListener(createCompleteFormListenerToDisableInput());
         }
         webView.loadDataWithBaseURL("file:///android_asset/www/forms/", prePopulateData(),
                 "text/html", "UTF-8", "");
-    }
-
-    private String getSelectedFormUuidsFromIntent(){
-        String selectedFormUuids = getIntent().getStringExtra(SELECTED_PATIENT_UUIDS_KEY);
-        if (selectedFormUuids == null){
-            return "[]";
-        } else {
-            return selectedFormUuids;
-        }
     }
 
     private String prePopulateData() {

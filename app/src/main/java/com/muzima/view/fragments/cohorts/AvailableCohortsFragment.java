@@ -75,7 +75,7 @@ public class AvailableCohortsFragment extends Fragment implements CohortsAdapter
         try {
             EventBus.getDefault().register(this);
         } catch (Exception e) {
-            Log.e(getClass().getSimpleName(),"Encountered an exception",e);
+            e.printStackTrace();
         }
     }
 
@@ -183,7 +183,4 @@ public class AvailableCohortsFragment extends Fragment implements CohortsAdapter
 
     @Override
     public void onQueryTaskCancelled() {}
-
-    @Override
-    public void onQueryTaskCancelled(Object errorDefinition) {}
 }

@@ -24,9 +24,8 @@ import com.muzima.api.model.FormTemplate;
 import com.muzima.api.model.Provider;
 import com.muzima.model.AvailableForm;
 import com.muzima.controller.FormController;
-import com.muzima.utils.LanguageUtil;
 import com.muzima.utils.ThemeUtils;
-import com.muzima.utils.javascriptinterface.ProviderReportJavascriptInterface;
+import com.muzima.utils.javascriptinterface.FormDataJavascriptInterface;
 import com.muzima.view.BroadcastListenerActivity;
 import com.muzima.view.progressdialog.MuzimaProgressDialog;
 
@@ -39,12 +38,10 @@ public class ProviderReportViewActivity extends BroadcastListenerActivity {
     public Provider provider;
     private MuzimaProgressDialog progressDialog;
     private FormTemplate reportTemplate;
-    private final LanguageUtil languageUtil = new LanguageUtil();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        ThemeUtils.getInstance().onCreate(this,true);
-        languageUtil.onCreate(this);
+        ThemeUtils.getInstance().onCreate(this,false);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_form_webview);
         progressDialog = new MuzimaProgressDialog(this);
@@ -56,10 +53,6 @@ public class ProviderReportViewActivity extends BroadcastListenerActivity {
             Log.e(getClass().getSimpleName(),"Could not obtain report template");
         }
         setupWebView();
-
-        if(getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(getString(R.string.title_provider_reports));
-        }
         logEvent("VIEW_PROVIDER_REPORT","{\"reporttemplateuuid\":\""+reportTemplate.getUuid()+"\"}");
     }
 
@@ -79,8 +72,8 @@ public class ProviderReportViewActivity extends BroadcastListenerActivity {
         webView.getSettings( ).setDomStorageEnabled(true);
         webView.getSettings( ).setBuiltInZoomControls(true);
 
-        webView.addJavascriptInterface(new ProviderReportJavascriptInterface(this),
-                "providerReportInterface");
+        webView.addJavascriptInterface(new FormDataJavascriptInterface((MuzimaApplication) getApplicationContext()),
+                "formDataInterface");
         webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
 
         webView.loadDataWithBaseURL("file:///android_asset/www/forms/", prePopulateData( ),

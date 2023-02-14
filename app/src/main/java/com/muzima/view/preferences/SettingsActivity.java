@@ -12,13 +12,18 @@ package com.muzima.view.preferences;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 
+import androidx.annotation.ColorInt;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import android.util.TypedValue;
 import android.view.Menu;
+import android.view.MenuItem;
 
 import com.muzima.MuzimaApplication;
 import com.muzima.R;
@@ -43,7 +48,7 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        ThemeUtils.getInstance().onCreate(this,true);
+        ThemeUtils.getInstance().onCreate(this,false);
         languageUtil.onCreate(this);
         getDelegate().installViewFactory();
         getDelegate().onCreate(savedInstanceState);

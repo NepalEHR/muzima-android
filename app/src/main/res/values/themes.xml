@@ -40,9 +40,8 @@
         <item name="colorNavigationItemSelected">@color/primary_white</item>
         <item name="onDarkBackgroundColor">@color/dark_smoke</item>
         <item name="colorPrimary">@color/primary_black</item>
-        <item name="icAssign">@drawable/ic_checkbox_marked_circle_plus_outline_light</item>
-        <item name="patientSummaryBorderColor">@color/patient_summary_border</item>
     </style>
+
     <style name="AppBaseTheme.NoActionBar" parent="Theme.MaterialComponents.NoActionBar.Bridge">
         <item name="android:statusBarColor">@color/primary_black</item>
         <item name="android:windowBackground">@color/primary_black</item>
@@ -71,8 +70,6 @@
         <item name="colorNavigationItemSelected">@color/primary_white</item>
         <item name="onDarkBackgroundColor">@color/dark_smoke</item>
         <item name="colorPrimary">@color/primary_black</item>
-        <item name="icAssign">@drawable/ic_checkbox_marked_circle_plus_outline</item>
-        <item name="patientSummaryBorderColor">@color/patient_summary_border</item>
     </style>
 
     <style name="AppBaseTheme.Light" parent="Theme.MaterialComponents.Light.Bridge">
@@ -104,9 +101,8 @@
         <item name="bottomNavigationBackground">@color/bottom_navigation_background_light</item>
         <item name="onDarkBackgroundColor">@color/primary_black</item>
         <item name="colorPrimary">@color/primary_white</item>
-        <item name="icAssign">@drawable/ic_checkbox_marked_circle_plus_outline_light</item>
-        <item name="patientSummaryBorderColor">@color/patient_summary_border_light</item>
     </style>
+
     <style name="AppBaseTheme.Light.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
         <item name="android:statusBarColor">@color/darker_primary_blue</item>
         <item name="android:windowBackground">@color/primary_white</item>
@@ -136,7 +132,16 @@
         <item name="bottomNavigationBackground">@color/bottom_navigation_background_light</item>
         <item name="onDarkBackgroundColor">@color/primary_black</item>
         <item name="colorPrimary">@color/primary_white</item>
-        <item name="icAssign">@drawable/ic_checkbox_marked_circle_plus_outline</item>
-        <item name="patientSummaryBorderColor">@color/patient_summary_border_light</item>
+    </style>
+
+    <style name="AppTheme.Fullscreen" parent="AppTheme">
+        <item name="android:actionBarStyle">@style/Widget.AppTheme.ActionBar.Fullscreen</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowBackground">@null</item>
+    </style>
+
+    <style name="ThemeOverlay.Muzimaandroid.FullscreenContainer" parent="">
+        <item name="fullscreenBackgroundColor">@color/light_blue_600</item>
+        <item name="fullscreenTextColor">@color/light_blue_A200</item>
     </style>
 </resources>

@@ -10,8 +10,6 @@
 
 package com.muzima.tasks;
 
-import android.util.Log;
-
 import java.util.concurrent.ExecutorService;
 
 public abstract class MuzimaAsyncTask<INPUT, PROGRESS, OUTPUT> {
@@ -32,7 +30,7 @@ public abstract class MuzimaAsyncTask<INPUT, PROGRESS, OUTPUT> {
                 if(!isCancelled())
                     AsyncWorker.getInstance().getHandler().post(() -> onPostExecute(output));
             } catch (final Exception e) {
-                Log.e(getClass().getSimpleName(),"Encounter an exception",e);
+                e.printStackTrace();
 
                 AsyncWorker.getInstance().getHandler().post(() -> onBackgroundError(e));
             }

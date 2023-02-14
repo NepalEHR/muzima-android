@@ -85,7 +85,7 @@ public class DownloadedFormsFragment extends Fragment implements FormsRecyclerVi
         try {
             EventBus.getDefault().register(this);
         } catch (Exception e) {
-            Log.e(getClass().getSimpleName(),"Encountered an exception",e);
+            e.printStackTrace();
         }
     }
 
@@ -194,7 +194,7 @@ public class DownloadedFormsFragment extends Fragment implements FormsRecyclerVi
                                 formTemplatesWithAssociatedFormData(selectedFormsUUIDs);
                         if (formTemplatesWithAssociatedFormData.isEmpty()) {
                             formController.deleteFormTemplatesByUUID(selectedFormsUUIDs);
-                            loadData(null);
+                            recyclerViewAdapter.notifyDataSetChanged();
                             endActionMode();
                             Toast.makeText(getActivity(), getActivity().getString(R.string.info_form_delete_success), Toast.LENGTH_SHORT).show();
                         } else {

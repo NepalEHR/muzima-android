@@ -137,19 +137,6 @@ public class ProviderController {
 
     }
 
-    public void deleteProvidersByUuids(List<String> providerUuids) throws ProviderDeleteException, IOException {
-        List<Provider> providers = new ArrayList<>();
-        for(String providerUuid : providerUuids){
-            Provider provider = providerService.getProviderByUuid(providerUuid);
-            if(provider != null){
-                providers.add(provider);
-            }
-        }
-        if(providers.size() > 0){
-            deleteProviders(providers);
-        }
-    }
-
     private Provider downloadProviderBySystemId(String systemId) throws ProviderLoadException {
         try {
             return providerService.downloadProvidersBySystemId(systemId);

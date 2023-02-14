@@ -10,44 +10,76 @@
   -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:background="@drawable/login_wallpaper"
+    android:background="@drawable/nhn_splash_bg"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+<!--    <LinearLayout-->
+<!--        android:layout_centerVertical="true"-->
+<!--        android:orientation="vertical"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content">-->
+<!--        <ImageView-->
+<!--            android:src="@mipmap/ic_nhn_logo"-->
+<!--            android:layout_gravity="center_horizontal"-->
+<!--            android:layout_width="152dp"-->
+<!--            android:layout_height="152dp"/>-->
+<!--        <TextView-->
+<!--            android:textColor="@color/primary_white"-->
+<!--            android:textSize="29sp"-->
+<!--            android:gravity="center_horizontal"-->
+<!--            android:text="@string/app_name"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"/>-->
+<!--        <TextView-->
+<!--            android:textColor="@color/primary_white"-->
+<!--            android:textSize="15sp"-->
+<!--            android:gravity="center_horizontal"-->
+<!--            android:text="@string/nhn_slogan"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"/>-->
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/splash_action_bar_holder"
-        android:visibility="gone"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+<!--    </LinearLayout>-->
 
-    <LinearLayout
-        android:layout_centerVertical="true"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+<!--<RelativeLayout-->
+<!--    android:layout_width="wrap_content"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:layout_alignParentBottom="true"-->
+<!--    android:layout_marginBottom="20dp">-->
+<!--    <androidx.appcompat.widget.Toolbar-->
+<!--        android:id="@+id/splash_action_bar_holder"-->
+<!--        android:visibility="gone"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"/>-->
 
-        <ImageView
-            android:src="@drawable/logo"
-            android:layout_gravity="center_horizontal"
-            android:layout_width="112dp"
-            android:layout_height="112dp"/>
+<!--    <LinearLayout-->
+<!--        android:layout_centerVertical="true"-->
+<!--        android:orientation="vertical"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content">-->
 
-        <TextView
-            android:textColor="@color/primary_white"
-            android:textSize="58sp"
-            android:gravity="center_horizontal"
-            android:text="@string/app_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
 
-        <TextView
-            android:textColor="@color/primary_white"
-            android:textSize="21sp"
-            android:gravity="center_horizontal"
-            android:text="@string/info_for_health_providers"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+<!--        <TextView-->
+<!--            android:textColor="@color/primary_white"-->
+<!--            android:textSize="18sp"-->
+<!--            android:gravity="center_horizontal"-->
+<!--            android:text="@string/powered_by"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"/>-->
 
-    </LinearLayout>
+<!--        <ImageView-->
+<!--            android:src="@drawable/logo"-->
+<!--            android:layout_gravity="center_horizontal"-->
+<!--            android:layout_width="42dp"-->
+<!--            android:layout_height="42dp"/>-->
+<!--        <TextView-->
+<!--            android:textColor="@color/primary_white"-->
+<!--            android:textSize="9sp"-->
+<!--            android:gravity="center_horizontal"-->
+<!--            android:text="@string/app_name_old"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"/>-->
 
+
+<!--    </LinearLayout>-->
+<!--</RelativeLayout>-->
 </RelativeLayout>

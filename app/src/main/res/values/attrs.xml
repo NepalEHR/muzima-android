@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (c) The Trustees of Indiana University, Moi University
   ~ and Vanderbilt University Medical Center. All Rights Reserved.
   ~
@@ -10,42 +9,44 @@
   -->
 
 <resources>
-    <attr name="activatedBackgroundIndicator" format="reference"/>
-    <attr name="primaryBackgroundColor" format="reference|color"/>
-    <attr name="patientSummaryBorderColor" format="reference|color"/>
-    <attr name="dashBoardBaseTextColor" format="color"/>
-    <attr name="primaryTextColor" format="reference|color"/>
-    <attr name="primaryDrawableColor" format="reference|color"/>
-    <attr name="secondaryTextColor" format="color"/>
-    <attr name="tabBackgroundColor" format="color"/>
-    <attr name="drawerBackgroundColor" format="color"/>
-    <attr name="syncTextBackgroundColor" format="color"/>
-    <attr name="loginDividerBackgroundColor" format="color"/>
-    <attr name="loginInfoDividerBackgroundColor" format="color"/>
-    <attr name="dataTipColor" format="color"/>
-    <attr name="selectableHintText" format="color"/>
-    <attr name="themeColor" format="color"/>
-    <attr name="menu_inactive_text_color" format="reference"/>
-    <attr name="toolbarTitleTextColor" format="reference"/>
-    <attr name="cardColor" format="reference"/>
+    <attr name="activatedBackgroundIndicator" format="reference" />
+    <attr name="primaryBackgroundColor" format="reference|color" />
+    <attr name="dashBoardBaseTextColor" format="color" />
+    <attr name="primaryTextColor" format="reference|color" />
+    <attr name="primaryDrawableColor" format="reference|color" />
+    <attr name="secondaryTextColor" format="color" />
+    <attr name="tabBackgroundColor" format="color" />
+    <attr name="drawerBackgroundColor" format="color" />
+    <attr name="syncTextBackgroundColor" format="color" />
+    <attr name="loginDividerBackgroundColor" format="color" />
+    <attr name="loginInfoDividerBackgroundColor" format="color" />
+    <attr name="dataTipColor" format="color" />
+    <attr name="selectableHintText" format="color" />
+    <attr name="themeColor" format="color" />
+    <attr name="menu_inactive_text_color" format="reference" />
+    <attr name="toolbarTitleTextColor" format="reference" />
+    <attr name="cardColor" format="reference" />
     <attr name="colorNavigationItem" format="color" />
     <attr name="colorNavigationItemSelected" format="color" />
-    <attr name="defaultNavigationDrawerStyle" format="reference"/>
-    <attr name="bottomNavigationBackground" format="reference"/>
-    <attr name="onDarkBackgroundColor" format="reference"/>
-    <attr name="icAssign" format="reference"/>
+    <attr name="defaultNavigationDrawerStyle" format="reference" />
+    <attr name="bottomNavigationBackground" format="reference" />
+    <attr name="onDarkBackgroundColor" format="reference" />
 
     <declare-styleable name="PagerSlidingTabStrip">
-        <attr name="indicatorTextColor" format="color"/>
-        <attr name="indicatorColor" format="color"/>
-        <attr name="underlineColor" format="color"/>
-        <attr name="dividerColor" format="reference"/>
-        <attr name="indicatorHeight" format="dimension"/>
-        <attr name="underlineHeight" format="dimension"/>
-        <attr name="tabDividerPadding" format="dimension"/>
-        <attr name="tabPaddingLeftRight" format="dimension"/>
-        <attr name="scrollOffset" format="dimension"/>
-        <attr name="tabCustomBackground" format="reference"/>
-        <attr name="shouldExpand" format="boolean"/>
+        <attr name="indicatorTextColor" format="color" />
+        <attr name="indicatorColor" format="color" />
+        <attr name="underlineColor" format="color" />
+        <attr name="dividerColor" format="reference" />
+        <attr name="indicatorHeight" format="dimension" />
+        <attr name="underlineHeight" format="dimension" />
+        <attr name="tabDividerPadding" format="dimension" />
+        <attr name="tabPaddingLeftRight" format="dimension" />
+        <attr name="scrollOffset" format="dimension" />
+        <attr name="tabCustomBackground" format="reference" />
+        <attr name="shouldExpand" format="boolean" />
+    </declare-styleable>
+    <declare-styleable name="FullscreenAttrs">
+        <attr name="fullscreenBackgroundColor" format="color" />
+        <attr name="fullscreenTextColor" format="color" />
     </declare-styleable>
 </resources>

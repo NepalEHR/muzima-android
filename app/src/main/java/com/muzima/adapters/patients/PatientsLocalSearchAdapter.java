@@ -11,7 +11,11 @@
 package com.muzima.adapters.patients;
 
 import android.content.Context;
+import androidx.annotation.NonNull;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import com.muzima.adapters.ListAdapter;
 import com.muzima.api.model.Patient;
 import com.muzima.controller.PatientController;
 import com.muzima.model.location.MuzimaGPSLocation;
@@ -22,24 +26,33 @@ import com.muzima.utils.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PatientsLocalSearchAdapter extends PatientAdapterHelper implements MuzimaAsyncTask.OnProgressListener {
+public class PatientsLocalSearchAdapter extends ListAdapter<Patient> implements MuzimaAsyncTask.OnProgressListener<List<Patient>>{
     private static final String SEARCH = "search";
+    private final PatientAdapterHelper patientAdapterHelper;
     private final PatientController patientController;
     private final List<String> cohortUuids;
     private MuzimaAsyncTask<String, List<Patient>, List<Patient>> backgroundQueryTask;
+    private BackgroundListQueryTaskListener backgroundListQueryTaskListener;
 
-
-    public PatientsLocalSearchAdapter(Context context, PatientController patientController,
+    public PatientsLocalSearchAdapter(Context context, int textViewResourceId,
+                                      PatientController patientController,
                                       List<String> cohortUuids,
                                       MuzimaGPSLocation currentLocation) {
-        super(context,patientController);
+        super(context, textViewResourceId);
         this.patientController = patientController;
         if (cohortUuids != null){
             this.cohortUuids = cohortUuids;
         } else {
             this.cohortUuids = new ArrayList<>();
         }
-        setCurrentLocation(currentLocation);
+        this.patientAdapterHelper = new PatientAdapterHelper(context, textViewResourceId, patientController);
+        patientAdapterHelper.setCurrentLocation(currentLocation);
+    }
+
+    @NonNull
+    @Override
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+        return patientAdapterHelper.createPatientRow(getItem(position), convertView, parent, getContext());
     }
 
     @Override
@@ -71,6 +84,9 @@ public class PatientsLocalSearchAdapter extends PatientAdapterHelper implements 
         reloadData();
     }
 
+    public void setBackgroundListQueryTaskListener(BackgroundListQueryTaskListener backgroundListQueryTaskListener) {
+        this.backgroundListQueryTaskListener = backgroundListQueryTaskListener;
+    }
 
     public void cancelBackgroundTask(){
         if(backgroundQueryTask != null){
@@ -79,19 +95,17 @@ public class PatientsLocalSearchAdapter extends PatientAdapterHelper implements 
     }
 
     @Override
-    public void onProgress(Object o) {
-        try {
-            onProgressUpdate((List<Patient>) o);
-        } catch (ClassCastException e){
-            Log.e(getClass().getSimpleName(),"Argument is not a patient list",e);
-        }
+    public void onProgress(List<Patient> patients) {
+        patientAdapterHelper.onProgressUpdate(patients, PatientsLocalSearchAdapter.this, backgroundListQueryTaskListener);
     }
+
 
     private class BackgroundQueryTask extends MuzimaAsyncTask<String, List<Patient>, List<Patient>> {
 
         @Override
         protected void onPreExecute() {
-            onPreExecuteUpdate();
+            patientAdapterHelper.onPreExecute(backgroundListQueryTaskListener);
+            PatientsLocalSearchAdapter.this.clear();
             setOnProgressListener(PatientsLocalSearchAdapter.this);
         }
 
@@ -190,22 +204,12 @@ public class PatientsLocalSearchAdapter extends PatientAdapterHelper implements 
 
         @Override
         protected void onPostExecute(List<Patient> patients) {
-            onPostExecuteUpdate(patients);
+            patientAdapterHelper.onPostExecute(patients, PatientsLocalSearchAdapter.this, backgroundListQueryTaskListener);
         }
 
         @Override
         protected void onBackgroundError(Exception e) {
             Log.e(getClass().getSimpleName(), "Error while running background task",e);
         }
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return position;
-    }
-
-    @Override
-    public int getItemViewType(int position) {
-        return position;
     }
 }

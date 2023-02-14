@@ -265,11 +265,11 @@ public class CompleteFormsListFragment extends FormsWithDataListFragment impleme
             });
 
         } catch (FormController.FormDataFetchException e) {
-            Log.e(getClass().getSimpleName(),"Encountered an exception",e);
+            e.printStackTrace();
         } catch (JSONException e) {
-            Log.e(getClass().getSimpleName(),"Encountered an exception",e);
+            e.printStackTrace();
         } catch (IOException e) {
-            Log.e(getClass().getSimpleName(),"Encountered an exception",e);
+            e.printStackTrace();
         }
     }
 
@@ -292,7 +292,7 @@ public class CompleteFormsListFragment extends FormsWithDataListFragment impleme
                 try {
                     formController.deleteEncounterFormDataAndRelatedPatientData(formDataList);
                 } catch (FormController.FormDataDeleteException e) {
-                    Log.e(getClass().getSimpleName(),"Encountered an exception",e);
+                    e.printStackTrace();
                 }
                 reloadData();
             }

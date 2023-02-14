@@ -73,7 +73,7 @@ public class AllCohortsListFragment extends Fragment implements CohortsAdapter.O
         try {
             EventBus.getDefault().register(this);
         } catch (Exception e) {
-            Log.e(getClass().getSimpleName(),"Encountered an exception",e);
+            e.printStackTrace();
         }
     }
 
@@ -174,7 +174,4 @@ public class AllCohortsListFragment extends Fragment implements CohortsAdapter.O
 
     @Override
     public void onQueryTaskCancelled() {}
-
-    @Override
-    public void onQueryTaskCancelled(Object errorDefinition) {}
 }

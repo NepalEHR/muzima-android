@@ -8,16 +8,13 @@
   ~ If the user is an entity intending to commercialize any application that uses
   ~ this code in a for-profit venture, please contact the copyright holder.
   -->
-<com.muzima.view.custom.CheckedLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/item_patient_container"
                 android:paddingTop="2dp"
                 android:paddingBottom="2dp"
                 android:layout_width="match_parent"
-                android:background="@drawable/activated_background_indicator"
                 android:layout_height="wrap_content">
-<RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+
     <ImageView
             android:id="@+id/genderImg"
             android:layout_width="36dp"
@@ -38,32 +35,43 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-        <LinearLayout
-                android:orientation="horizontal"
+        <ListView
+                android:id="@+id/tag_list_view"
+                android:visibility="gone"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp">
+                android:layout_height="wrap_content"/>
+
+        <com.muzima.view.custom.CheckedRelativeLayout
+            android:id="@+id/tags_scroller"
+            android:layout_width="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_height="wrap_content"
+            android:clickable="true">
+
             <LinearLayout
                 android:id="@+id/menu_tags"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"/>
-            <RelativeLayout
+        </com.muzima.view.custom.CheckedRelativeLayout>
+
+        <RelativeLayout
+                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-                <TextView
-                        android:id="@+id/identifier"
-                        style="@style/ListDescription"
-                        android:fontFamily="@font/roboto_regular"
-                        android:textColor="?attr/primaryTextColor"
-                        android:layout_width="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginEnd="12dp"
-                        android:layout_marginLeft="8dp"
-                        android:gravity="center_vertical"/>
-            </RelativeLayout>
-        </LinearLayout>
+
+            <TextView
+                    android:id="@+id/identifier"
+                    style="@style/ListDescription"
+                    android:fontFamily="@font/roboto_regular"
+                    android:textColor="?attr/primaryTextColor"
+                    android:layout_width="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="12dp"
+                    android:gravity="end"/>
+        </RelativeLayout>
 
         <LinearLayout
                 android:id="@+id/item_patient_details"
@@ -97,36 +105,32 @@
                         android:layout_height="wrap_content">
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:layout_marginEnd="7dp"
-                        android:layout_toStartOf="@+id/age_text_label"
-                        android:orientation="horizontal">
+                            android:layout_alignParentStart="true"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="7dp"
+                            android:orientation="horizontal">
 
                         <TextView
-                            android:id="@+id/dateOfBirth"
-                            style="@style/ListDescription"
-                            android:layout_width="wrap_content"
-                            android:layout_marginEnd="6dp"
-                            android:fontFamily="@font/roboto_regular"
-                            android:layout_weight="1"
-                            android:textSize="12sp" />
+                                android:id="@+id/dateOfBirth"
+                                style="@style/ListDescription"
+                                android:fontFamily="@font/roboto_regular"
+                                android:layout_width="wrap_content"
+                                android:layout_marginEnd="6dp"/>
 
                         <TextView
-                            android:id="@+id/distanceToClientAddress"
-                            style="@style/ListDescription"
-                            android:layout_width="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:fontFamily="@font/roboto_regular"
-                            android:layout_weight="1" />
+                                android:id="@+id/distanceToClientAddress"
+                                style="@style/ListDescription"
+                                android:fontFamily="@font/roboto_regular"
+                                android:layout_width="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:gravity="end"/>
                     </LinearLayout>
 
                     <TextView
                             android:id="@+id/age_text_label"
                             android:layout_marginEnd="12dp"
-                            android:paddingTop="3dp"
-                            android:paddingBottom="2dp"
+                            android:paddingBottom="4dp"
                             android:textSize="12sp"
                             android:gravity="end"
                             android:fontFamily="@font/roboto_regular"
@@ -146,8 +150,7 @@
           android:layout_marginTop="6dp"
           android:layout_marginStart="12dp"
           android:layout_marginEnd="12dp"
-          android:background="?attr/secondaryTextColor"/>
+          android:background="@color/white_smoke_transparent"/>
 </RelativeLayout>
-</com.muzima.view.custom.CheckedLinearLayout>
 
 

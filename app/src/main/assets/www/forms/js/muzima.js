@@ -420,15 +420,8 @@ $(document).ready(function () {
            step : 5,
            autoclose : true
        });
-
        var dt = new Date();
-       var currentHours = dt.getHours();
-       currentHours = ("0" + currentHours).slice(-2);
-
-       var currentMinutes = dt.getMinutes();
-       currentMinutes = ("0" + currentMinutes).slice(-2);
-
-       var time = currentHours + ":" + currentMinutes;
+       var time = dt.getHours() + ":" + dt.getMinutes();
        var dateFormat = "dd-mm-yy";
        var currentDate = $.datepicker.formatDate(dateFormat, new Date());
 
@@ -1348,7 +1341,7 @@ $(document).ready(function () {
     var obsDatetimeArray = null;
     var setObsDatetimeArray = function ($form) {
         obsDatetimeArray = {};
-        var obsDatetimeElements = $form.find('*[data-obsdatetimefor]');
+        var obsDatetimeElements = $form.find('*[data-obsdatetimefor]').filter(':visible');
         $.each(obsDatetimeElements, function (i, element) {
             pushIntoArray(obsDatetimeArray, $(element).attr('data-obsdatetimefor'), $(element).val());
         });
@@ -1366,7 +1359,7 @@ $(document).ready(function () {
     var obsValueTextArray = null;
     var setObsValueTextArray = function ($form) {
         obsValueTextArray = {};
-        var obsValueTextElements = $form.find('*[data-obsvaluetextfor]');
+        var obsValueTextElements = $form.find('*[data-obsvaluetextfor]').filter(':visible');
         $.each(obsValueTextElements, function (i, element) {
            pushIntoArray(obsValueTextArray, $(element).attr('data-obsvaluetextfor'), $(element).val());
         });
@@ -1385,7 +1378,7 @@ $(document).ready(function () {
     var obsValueCodedArray = null;
     var setObsValueCodedArray = function ($form) {
         obsValueCodedArray = {};
-        var obsValueCodedElements = $form.find('*[data-obsvaluecodedfor]');
+        var obsValueCodedElements = $form.find('*[data-obsvaluecodedfor]').filter(':visible');
         $.each(obsValueCodedElements, function (i, element) {
             if ($(element).is(':checkbox') || $(element).is(':radio')) {
                 if ($(element).is(':checked')) {
@@ -1410,7 +1403,7 @@ $(document).ready(function () {
     var obsValueUuidArray = null;
     var setObsValueUuidArray = function ($form) {
         obsValueUuidArray = {};
-        var obsValueUuidElements = $form.find('*[data-obsvalueuuidfor]');
+        var obsValueUuidElements = $form.find('*[data-obsvalueuuidfor]').filter(':visible');
         $.each(obsValueUuidElements, function (i, element) {
             pushIntoArray(obsValueUuidArray, $(element).attr('data-obsvalueuuidfor'), $(element).val());
         });

@@ -30,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.muzima.MuzimaApplication;
 import com.muzima.R;
+import com.muzima.adapters.observations.ObservationsPagerAdapter;
 import com.muzima.api.model.Patient;
 import com.muzima.api.model.SmartCardRecord;
 import com.muzima.controller.SmartCardController;
@@ -50,6 +51,7 @@ public class SHRObservationsDataActivity extends BroadcastListenerActivity {
     public static final boolean DEFAULT_SHR_STATUS = false;
 
     private ViewPager viewPager;
+    private ObservationsPagerAdapter observationsPagerAdapter;
     private Patient patient;
     private AlertDialog writeSHRDataOptionDialog;
     private final LanguageUtil languageUtil = new LanguageUtil();
@@ -92,6 +94,9 @@ public class SHRObservationsDataActivity extends BroadcastListenerActivity {
         viewPager = findViewById(R.id.pager);
 
         Boolean isSHRData = true;
+//        observationsPagerAdapter = new ObservationsPagerAdapter(getApplicationContext(), getSupportFragmentManager(), isSHRData, patient);
+//        observationsPagerAdapter.initPagerViews();
+//        viewPager.setAdapter(observationsPagerAdapter);
     }
 
     /**
@@ -108,6 +113,7 @@ public class SHRObservationsDataActivity extends BroadcastListenerActivity {
         SearchView searchView = (SearchView) menu.findItem(R.id.search)
                 .getActionView();
         searchView.setQueryHint(getString(R.string.info_observation_search));
+        searchView.setOnQueryTextListener(observationsPagerAdapter);
         return true;
     }
 
@@ -127,6 +133,7 @@ public class SHRObservationsDataActivity extends BroadcastListenerActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        observationsPagerAdapter.cancelBackgroundQueryTasks();
     }
 
     private void invokeSHRApplication() {
@@ -188,18 +195,31 @@ public class SHRObservationsDataActivity extends BroadcastListenerActivity {
                                 .show();
 
                     } else if (writeErrors != null) {
-                        Snackbar.make(findViewById(R.id.client_summary_view), getString(R.string.failure_writing_smartcard) + writeErrors.get(0), Snackbar.LENGTH_LONG)
-                                .setActionTextColor(getResources().getColor(android.R.color.holo_red_dark, null))
-                                .setAction(R.string.general_retry, new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        invokeSHRApplication();
-                                    }
-                                })
-                                .show();
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            Snackbar.make(findViewById(R.id.client_summary_view), getString(R.string.failure_writing_smartcard) + writeErrors.get(0), Snackbar.LENGTH_LONG)
+                                    .setActionTextColor(getResources().getColor(android.R.color.holo_red_dark, null))
+                                    .setAction(R.string.general_retry, new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            invokeSHRApplication();
+                                        }
+                                    })
+                                    .show();
+                        } else {
+
+                            Snackbar.make(findViewById(R.id.client_summary_view), getString(R.string.failure_writing_smartcard) + writeErrors.get(0), Snackbar.LENGTH_LONG)
+                                    .setActionTextColor(getResources().getColor(android.R.color.holo_red_dark))
+                                    .setAction(R.string.general_retry, new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            invokeSHRApplication();
+                                        }
+                                    })
+                                    .show();
+                        }
                     }
                 } catch (Exception e) {
-                    Log.e(getClass().getSimpleName(),"Encounter an exception",e);
+                    e.printStackTrace();
                 }
                 writeSHRDataOptionDialog.dismiss();
                 writeSHRDataOptionDialog.cancel();

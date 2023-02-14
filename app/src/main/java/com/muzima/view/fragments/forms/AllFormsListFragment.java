@@ -11,7 +11,6 @@
 package com.muzima.view.fragments.forms;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,7 +73,7 @@ public class AllFormsListFragment extends Fragment implements FormsRecyclerViewA
         try {
             EventBus.getDefault().register(this);
         } catch (Exception e) {
-            Log.e(getClass().getSimpleName(),"Encountered an exception",e);
+            e.printStackTrace();
         }
     }
 

@@ -9,766 +9,89 @@
   ~ this code in a for-profit venture, please contact the copyright holder.
   -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
     <LinearLayout
 
-        android:id="@+id/client_summary_view"
-        android:background="?attr/primaryBackgroundColor"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="76dp"
-        android:orientation="vertical">
-
-        <View android:id="@+id/bottom_sheet_child_container"
-            android:visibility="gone"
-            android:background="@color/white_smoke"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-
-        <com.google.android.material.appbar.AppBarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="6dp"
-            android:layout_marginStart="6dp"
-            android:background="@drawable/patient_summary_border"
-            app:elevation="6dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="6dp"
-                android:orientation="vertical">
-
-                <include layout="@layout/client_summary_patients_list"/>
-
-                <RelativeLayout
-                    android:id="@+id/address_layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:layout_width="70dp"
-                        android:id="@+id/address"
-                        android:layout_height="wrap_content"
-                        android:text="@string/general_address"
-                        android:textColor="?attr/primaryTextColor"
-                        android:fontFamily="@font/roboto_regular" />
-
-                    <TextView
-                        android:id="@+id/patient_address"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_toRightOf="@id/address"
-                        android:textColor="?attr/primaryTextColor"
-                        android:fontFamily="@font/roboto_regular" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/phone_number_layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp">
-                    <TextView
-                        android:layout_width="70dp"
-                        android:id="@+id/telno"
-                        android:layout_height="wrap_content"
-                        android:text="@string/general_phone_number"
-                        android:textColor="?attr/primaryTextColor"
-                        android:fontFamily="@font/roboto_regular" />
-                    <TextView
-                        android:id="@+id/patient_phone_number"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_toRightOf="@id/telno"
-                        android:textColor="?attr/primaryTextColor"
-                        android:fontFamily="@font/roboto_regular" />
-
-                </RelativeLayout>
-
-                <include android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="2dp"
-                    layout="@layout/forms_top_bar_view"/>
-            </LinearLayout>
-        </com.google.android.material.appbar.AppBarLayout>
-        <LinearLayout
-            android:id="@+id/dados_de_consentimento"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="6dp"
-            android:background="@drawable/patient_summary_border"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/general_consent_date"
-                    android:textColor="?attr/primaryTextColor"
-                    android:fontFamily="@font/roboto_regular" />
-
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_gravity="center_vertical"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp">
-                    <TextView
-                        android:layout_width="150dp"
-                        android:id="@+id/sector"
-                        android:layout_height="wrap_content"
-                        android:text="@string/general_testing_sector"
-                        android:textColor="?attr/primaryTextColor"
-                        android:fontFamily="@font/roboto_regular" />
-                    <TextView
-                        android:id="@+id/sector_value"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_toRightOf="@id/sector"
-                        android:layout_centerVertical="true"
-                        android:textColor="?attr/primaryTextColor"
-                        android:fontFamily="@font/roboto_regular" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp">
-                    <TextView
-                        android:layout_width="150dp"
-                        android:id="@+id/testing_location"
-                        android:layout_height="wrap_content"
-                        android:text="@string/general_preferred_testing_location"
-                        android:textColor="?attr/primaryTextColor"
-                        android:fontFamily="@font/roboto_regular" />
-                    <TextView
-                        android:id="@+id/preferred_testing_location"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginLeft="5dp"
-                        android:layout_toRightOf="@id/testing_location"
-                        android:textColor="?attr/primaryTextColor"
-                        android:fontFamily="@font/roboto_regular" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp">
-                    <TextView
-                        android:layout_width="150dp"
-                        android:id="@+id/testing_date"
-                        android:layout_height="wrap_content"
-                        android:text="@string/general_testing_date"
-                        android:textColor="?attr/primaryTextColor"
-                        android:fontFamily="@font/roboto_regular" />
-                    <TextView
-                            android:id="@+id/testing_date_value"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_centerVertical="true"
-                            android:layout_marginLeft="5dp"
-                            android:layout_toRightOf="@id/testing_date"
-                            android:textColor="?attr/primaryTextColor"
-                            android:fontFamily="@font/roboto_regular"/>
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp">
-                    <TextView
-                        android:layout_width="150dp"
-                        android:id="@+id/last_consent_date"
-                        android:layout_height="wrap_content"
-                        android:text="@string/general_last_consent_date"
-                        android:textColor="?attr/primaryTextColor"
-                        android:fontFamily="@font/roboto_regular" />
-                    <TextView
-                            android:id="@+id/last_consent_date_value"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_centerVertical="true"
-                            android:layout_marginLeft="5dp"
-                            android:layout_toRightOf="@id/last_consent_date"
-                            android:textColor="?attr/primaryTextColor"
-                            android:fontFamily="@font/roboto_regular"/>
-
-                </RelativeLayout>
-
-            </LinearLayout>
-        </LinearLayout>
-        <LinearLayout
+            android:id="@+id/client_summary_view"
+            android:background="?attr/primaryBackgroundColor"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginEnd="12dp"
-            android:layout_marginStart="8dp"
-            app:tabSelectedTextColor="@color/primary_blue"
-            app:tabIndicatorColor="@color/primary_blue"
-            android:paddingTop="6dp"
+            android:layout_marginStart="12dp"
             android:orientation="vertical">
 
-            <LinearLayout
+        <View android:id="@+id/bottom_sheet_child_container"
+              android:visibility="gone"
+              android:background="@color/white_smoke"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"/>
+
+        <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="100"
+                android:layout_height="wrap_content"
+                android:background="?attr/primaryBackgroundColor"
+                app:elevation="6dp">
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                <include layout="@layout/client_summary_patients_list"/>
+            </LinearLayout>
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:tabSelectedTextColor="@color/primary_blue"
+                app:tabIndicatorColor="@color/primary_blue"
+                android:paddingTop="6dp"
                 android:orientation="vertical">
 
-                <LinearLayout
+            <include android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:layout_marginHorizontal="2dp"
+                     layout="@layout/forms_top_bar_view"/>
+
+            <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/tabLayout"
                     android:layout_width="match_parent"
-                    android:id="@+id/relationships_listing"
-                    android:layout_height="0dp"
-                    android:orientation="vertical">
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:onClick="navigateToRelationships"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp">
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/general_relationships"
-                            android:textColor="?attr/primaryTextColor"
-                            android:textSize="18sp"
-                            android:fontFamily="@font/roboto_bold" />
+                    android:layout_height="wrap_content"
+                    app:tabSelectedTextColor="@color/primary_blue"
+                    app:tabIndicatorColor="@color/primary_blue"
+                    app:tabIconTint="@color/tab_icon_color"
+                    app:tabMode="fixed"
+                    app:tabGravity="fill"
+                    app:tabInlineLabel="true"
+                    app:tabIndicatorHeight="3dp">
 
-                        <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_gravity="center_vertical"
-                            android:src="@drawable/ic_icon_right" />
-
-                    </RelativeLayout>
-
-                    <include layout="@layout/relationship_list_fragment"/>
-
-                </LinearLayout>
-                <View android:id="@+id/relationships_list_separator"
-                    android:layout_width="match_parent"
-                    android:layout_marginTop="5dp"
-                    android:layout_height="1dp"
-                    android:fontFamily="@font/montserrat_bold"
-                    android:background="?attr/primaryTextColor"
-                    android:visibility="gone"/>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:id="@+id/historical_data"
-                    android:layout_height="0dp"
-                    android:orientation="vertical">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:onClick="loadObservation"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp">
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/general_historical_data"
-                            android:textColor="?attr/primaryTextColor"
-                            android:textSize="18sp"
-                            android:fontFamily="@font/roboto_bold" />
-
-                        <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_gravity="center_vertical"
-                            android:src="@drawable/ic_icon_right" />
-                    </RelativeLayout>
-
-                    <FrameLayout
-                        android:name="com.muzima.view.fragments.patient.ChronologicalObsViewFragment"
-                        android:id="@+id/chronological_fragment"
+                <com.google.android.material.tabs.TabItem
+                        android:id="@+id/tab_data_collection"
                         android:layout_width="wrap_content"
-                        android:layout_height="match_parent" />
+                        android:layout_height="wrap_content"
+                        android:text="@string/general_data_collection"
+                        android:icon="@drawable/baseline_add_24"/>
 
-                </LinearLayout>
-                <View android:id="@+id/confidant_details_separator"
-                      android:layout_width="match_parent"
-                      android:layout_marginTop="5dp"
-                      android:layout_height="0dp"
-                      android:fontFamily="@font/montserrat_bold"
-                      android:background="?attr/primaryTextColor"
-                      android:visibility="gone"/>
-                <LinearLayout
-                        android:id="@+id/confidant_details_layout"
-                        android:layout_width="fill_parent"
-                        android:layout_height="0dp"
-                        android:layout_margin="6dp"
-                        android:background="@drawable/patient_summary_border"
-                        android:orientation="vertical">
-                        <TextView
-                                android:id="@+id/confidant_details_textview"
-                                android:padding="14dp"
-                                android:textColor="@android:color/white"
-                                android:text="@string/confidant_details"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"/>
+                <com.google.android.material.tabs.TabItem
+                        android:id="@+id/tab_historical_data"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/general_historical_data"
+                        android:icon="@drawable/baseline_history_24"/>
 
-                    <View android:id="@+id/confidant_name_textview_separator"
-                          android:layout_width="match_parent"
-                          android:layout_marginTop="5dp"
-                          android:layout_height="1dp"
-                          android:fontFamily="@font/montserrat_bold"
-                          android:background="?attr/primaryTextColor"
-                          android:visibility="gone"/>
-                    <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-                        <TextView
-                                android:layout_width="180dp"
-                                android:id="@+id/confidant_name_textview"
-                                android:layout_height="wrap_content"
-                                android:text="@string/confidant_name"
-                                android:layout_marginLeft="15dp"
-                                android:textStyle="bold"
-                                android:textColor="?attr/primaryTextColor"
-                                android:fontFamily="@font/roboto_regular" />
-                        <TextView
-                                android:id="@+id/confidant_name_value"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_centerVertical="true"
-                                android:layout_marginLeft="15dp"
-                                android:layout_marginTop="1dp"
-                                android:layout_marginBottom="5dp"
-                                android:layout_below="@id/confidant_name_textview"
-                                android:textColor="?attr/primaryTextColor"
-                                android:fontFamily="@font/roboto_regular"/>
+            </com.google.android.material.tabs.TabLayout>
 
-                    </RelativeLayout>
-
-                    <View android:id="@+id/confidant_phone_number_1_textview_separator"
-                          android:layout_width="match_parent"
-                          android:layout_marginTop="5dp"
-                          android:layout_height="0dp"
-                          android:fontFamily="@font/montserrat_bold"
-                          android:background="?attr/primaryTextColor"
-                          android:visibility="gone"/>
-                    <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-                        <TextView
-                                android:layout_width="180dp"
-                                android:id="@+id/confidant_phone_number_1_textview"
-                                android:layout_height="wrap_content"
-                                android:text="@string/confidant_phone_number_1"
-                                android:layout_marginLeft="15dp"
-                                android:layout_marginBottom="1dp"
-                                android:textStyle="bold"
-                                android:textColor="?attr/primaryTextColor"
-                                android:fontFamily="@font/roboto_regular" />
-                        <TextView
-                                android:id="@+id/confidant_phone_number_1_value"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_centerVertical="true"
-                                android:layout_marginLeft="15dp"
-                                android:layout_below="@id/confidant_phone_number_1_textview"
-                                android:textColor="?attr/primaryTextColor"
-                                android:fontFamily="@font/roboto_regular"/>
-
-                    </RelativeLayout>
-                </LinearLayout>
-
-                <View android:id="@+id/clinical_information_separator"
-                      android:layout_width="fill_parent"
-                      android:layout_marginTop="10dp"
-                      android:layout_height="0dp"
-                      android:fontFamily="@font/montserrat_bold"
-                      android:background="?attr/primaryTextColor"
-                      android:visibility="gone"/>
-                <LinearLayout
-                        android:id="@+id/clinical_information_layout"
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_margin="6dp"
-                        android:background="@drawable/patient_summary_border"
-                        android:orientation="vertical">
-                        <TextView
-                                android:id="@+id/clinical_information_details_textview"
-                                android:padding="14dp"
-                                android:text="@string/clinical_information_details"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:textColor="?attr/primaryTextColor"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"/>
-                    <ScrollView
-                            android:layout_width="fill_parent"
-                            android:layout_height="wrap_content">
-                        <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical">
-
-                            <View android:id="@+id/most_recent_viral_load_result_separator"
-                                  android:layout_width="match_parent"
-                                  android:layout_marginTop="5dp"
-                                  android:layout_height="1dp"
-                                  android:fontFamily="@font/montserrat_bold"
-                                  android:background="?attr/primaryTextColor"
-                                  android:visibility="gone"/>
-                            <RelativeLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
-                                <TextView
-                                        android:layout_width="180dp"
-                                        android:id="@+id/most_recent_viral_load_result_textView"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/most_recent_viral_load_result"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="1dp"
-                                        android:textStyle="bold"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular" />
-                                <TextView
-                                        android:id="@+id/most_recent_viral_load_result_value"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_centerVertical="true"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="5dp"
-                                        android:layout_below="@id/most_recent_viral_load_result_textView"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular"/>
-
-                            </RelativeLayout>
-
-                            <View android:id="@+id/most_recent_viral_load_result_date_separator"
-                                  android:layout_width="match_parent"
-                                  android:layout_marginTop="5dp"
-                                  android:layout_height="0dp"
-                                  android:fontFamily="@font/montserrat_bold"
-                                  android:background="?attr/primaryTextColor"
-                                  android:visibility="gone"/>
-                            <RelativeLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
-                                <TextView
-                                        android:layout_width="180dp"
-                                        android:id="@+id/most_recent_viral_load_result_date_textView"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/most_recent_viral_load_result_date"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="1dp"
-                                        android:textStyle="bold"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular" />
-                                <TextView
-                                        android:id="@+id/most_recent_viral_load_result_date_value"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_centerVertical="true"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="5dp"
-                                        android:layout_below="@id/most_recent_viral_load_result_date_textView"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular"/>
-
-                            </RelativeLayout>
-
-                            <View android:id="@+id/most_recent_arv_pickup_separator"
-                                  android:layout_width="match_parent"
-                                  android:layout_marginTop="5dp"
-                                  android:layout_height="0dp"
-                                  android:fontFamily="@font/montserrat_bold"
-                                  android:background="?attr/primaryTextColor"
-                                  android:visibility="gone"/>
-                            <RelativeLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
-                                <TextView
-                                        android:layout_width="180dp"
-                                        android:id="@+id/most_recent_arv_pickup_textView"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/most_recent_arv_pickup"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="1dp"
-                                        android:textStyle="bold"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular" />
-                                <TextView
-                                        android:id="@+id/most_recent_arv_pickup_value"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_centerVertical="true"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="5dp"
-                                        android:layout_below="@id/most_recent_arv_pickup_textView"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular"/>
-
-                            </RelativeLayout>
-
-                            <View android:id="@+id/most_recent_arv_pickup_dispensation_mode_separator"
-                                  android:layout_width="match_parent"
-                                  android:layout_marginTop="5dp"
-                                  android:layout_height="0dp"
-                                  android:fontFamily="@font/montserrat_bold"
-                                  android:background="?attr/primaryTextColor"
-                                  android:visibility="gone"/>
-                            <RelativeLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
-                                <TextView
-                                        android:layout_width="180dp"
-                                        android:id="@+id/most_recent_arv_pickup_dispensation_mode_textView"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/most_recent_arv_pickup_dispensation_mode"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="1dp"
-                                        android:textStyle="bold"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular" />
-                                <TextView
-                                        android:id="@+id/most_recent_arv_pickup_dispensation_mode_value"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_centerVertical="true"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="5dp"
-                                        android:layout_below="@id/most_recent_arv_pickup_dispensation_mode_textView"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular"/>
-
-                            </RelativeLayout>
-
-                            <View android:id="@+id/next_scheduled_arv_pickup_separator"
-                                  android:layout_width="match_parent"
-                                  android:layout_marginTop="5dp"
-                                  android:layout_height="0dp"
-                                  android:fontFamily="@font/montserrat_bold"
-                                  android:background="?attr/primaryTextColor"
-                                  android:visibility="gone"/>
-                            <RelativeLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
-                                <TextView
-                                        android:layout_width="180dp"
-                                        android:id="@+id/next_scheduled_arv_pickup_textView"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/next_scheduled_arv_pickup"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="1dp"
-                                        android:textStyle="bold"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular" />
-                                <TextView
-                                        android:id="@+id/next_scheduled_arv_pickup_value"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_centerVertical="true"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="5dp"
-                                        android:layout_below="@id/next_scheduled_arv_pickup_textView"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular"/>
-
-                            </RelativeLayout>
-
-                            <View android:id="@+id/most_recent_clinical_consultation_date_separator"
-                                  android:layout_width="match_parent"
-                                  android:layout_marginTop="5dp"
-                                  android:layout_height="0dp"
-                                  android:fontFamily="@font/montserrat_bold"
-                                  android:background="?attr/primaryTextColor"
-                                  android:visibility="gone"/>
-                            <RelativeLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
-                                <TextView
-                                        android:layout_width="180dp"
-                                        android:id="@+id/most_recent_clinical_consultation_date_textView"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/most_recent_clinical_consultation_date"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="1dp"
-                                        android:textStyle="bold"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular" />
-                                <TextView
-                                        android:id="@+id/most_recent_clinical_consultation_date_value"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_centerVertical="true"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="5dp"
-                                        android:layout_below="@id/most_recent_clinical_consultation_date_textView"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular"/>
-
-                            </RelativeLayout>
-
-                            <View android:id="@+id/next_clinical_consultation_date_separator"
-                                  android:layout_width="match_parent"
-                                  android:layout_marginTop="5dp"
-                                  android:layout_height="0dp"
-                                  android:fontFamily="@font/montserrat_bold"
-                                  android:background="?attr/primaryTextColor"
-                                  android:visibility="gone"/>
-                            <RelativeLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
-                                <TextView
-                                        android:layout_width="180dp"
-                                        android:id="@+id/next_clinical_consultation_date_textView"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/next_clinical_consultation_date"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="1dp"
-                                        android:textStyle="bold"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular" />
-                                <TextView
-                                        android:id="@+id/next_clinical_consultation_date_value"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_centerVertical="true"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="5dp"
-                                        android:layout_below="@id/next_clinical_consultation_date_textView"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular"/>
-
-                            </RelativeLayout>
-
-                            <View android:id="@+id/tpt_start_date_separator"
-                                  android:layout_width="match_parent"
-                                  android:layout_marginTop="5dp"
-                                  android:layout_height="0dp"
-                                  android:fontFamily="@font/montserrat_bold"
-                                  android:background="?attr/primaryTextColor"
-                                  android:visibility="gone"/>
-                            <RelativeLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
-                                <TextView
-                                        android:layout_width="180dp"
-                                        android:id="@+id/tpt_start_date_textView"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/tpt_start_date"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="1dp"
-                                        android:textStyle="bold"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular" />
-                                <TextView
-                                        android:id="@+id/tpt_start_date_value"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_centerVertical="true"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="5dp"
-                                        android:layout_below="@id/tpt_start_date_textView"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular"/>
-
-                            </RelativeLayout>
-
-                            <View android:id="@+id/tpt_end_date_separator"
-                                  android:layout_width="match_parent"
-                                  android:layout_marginTop="5dp"
-                                  android:layout_height="0dp"
-                                  android:fontFamily="@font/roboto_thin"
-                                  android:background="?attr/primaryTextColor"
-                                  android:visibility="gone"/>
-                            <RelativeLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
-                                <TextView
-                                        android:layout_width="180dp"
-                                        android:id="@+id/tpt_end_date_textView"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/tpt_end_date"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_marginBottom="1dp"
-                                        android:textStyle="bold"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular" />
-                                <TextView
-                                        android:id="@+id/tpt_end_date_value"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_centerVertical="true"
-                                        android:layout_marginLeft="15dp"
-                                        android:layout_below="@id/tpt_end_date_textView"
-                                        android:textColor="?attr/primaryTextColor"
-                                        android:fontFamily="@font/roboto_regular"/>
-
-                            </RelativeLayout>
-
-                        </LinearLayout>
-                    </ScrollView>
-                    </LinearLayout>
-
-                <View android:id="@+id/historical_data_separator"
-                      android:layout_width="match_parent"
-                      android:layout_marginTop="5dp"
-                      android:layout_height="1dp"
-                      android:fontFamily="@font/montserrat_bold"
-                      android:background="?attr/primaryTextColor"
-                      android:visibility="gone"/>
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:id="@+id/data_collection"
-                        android:layout_height="0dp"
-                        android:orientation="vertical">
-
-                    <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:onClick="loadForms"
-                            android:layout_height="wrap_content">
-                        <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/general_forms"
-                                android:textColor="?attr/primaryTextColor"
-                                android:textSize="18sp"
-                                android:fontFamily="@font/roboto_bold"/>
-
-                        <ImageView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_gravity="center_vertical"
-                                android:src="@drawable/ic_icon_right" />
-                    </RelativeLayout>
-
-                    <include layout="@layout/fragment_list"/>
-                </LinearLayout>
-
+            <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/viewPager"
+                    android:layout_marginTop="6dp"
+                    android:layout_width="match_parent"
+                    android:orientation="horizontal"
+                    android:layout_height="wrap_content"/>
         </LinearLayout>
-        </LinearLayout>
-
     </LinearLayout>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="2dp">
-        <include
-            layout="@layout/item_patient_summary_bottom_navigation"
-            android:layout_alignParentBottom="true"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-    </RelativeLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
